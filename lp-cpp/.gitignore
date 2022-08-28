@@ -1,0 +1,7 @@
+build/
+ipch/
+CMakeLists.txt.user
+.build/
+.idea/
+.vscode/
+CMakeUserPresets.json
