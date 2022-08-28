@@ -13,6 +13,7 @@ add_library(${LIB_NAME} SHARED ${PUBLIC_HEADERS} ${SOURCES_AND_PRIVATE_HEADERS})
 include(GenerateExportHeader)
 generate_export_header(${LIB_NAME} PREFIX_NAME API_)
 
+find_package(cppzmq REQUIRED)
 
 set_target_properties(${LIB_NAME} PROPERTIES
                       CXX_STANDARD 17
@@ -24,6 +25,7 @@ set_target_properties(${LIB_NAME} PROPERTIES
 target_link_libraries(${LIB_NAME}
                       PRIVATE
                       logging_obj
+                      cppzmq
                       )
 
 target_include_directories(${LIB_NAME}

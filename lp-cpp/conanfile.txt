@@ -1,7 +1,7 @@
 [requires]
 catch2/3.1.0
 spdlog/1.10.0
-zeromq/4.3.4
+cppzmq/4.8.1
 
 [generators]
 CMakeDeps

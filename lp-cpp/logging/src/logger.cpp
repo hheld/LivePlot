@@ -16,7 +16,7 @@ std::shared_ptr<spdlog::logger> logger(const std::string &loggerName)
     }
 
     logger = spdlog::stdout_color_mt(loggerName);
-    logger->set_level(spdlog::level::info);
+    logger->set_level(spdlog::level::debug);
 
     return logger;
 }
