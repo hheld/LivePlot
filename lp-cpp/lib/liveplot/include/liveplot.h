@@ -3,6 +3,7 @@
 #include "liveplot_export.h"
 
 #include <memory>
+#include <string_view>
 
 namespace spdlog
 {
@@ -18,7 +19,7 @@ public:
     API_LIVEPLOT_EXPORT LivePlot();
     API_LIVEPLOT_EXPORT ~LivePlot();
 
-    API_LIVEPLOT_EXPORT void plot(double x, double y) const;
+    API_LIVEPLOT_EXPORT void plot(std::string_view quantity, double x, double y) const;
 
 private:
     std::shared_ptr<spdlog::logger> log_;

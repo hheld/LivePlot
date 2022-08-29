@@ -92,9 +92,9 @@ LivePlot::LivePlot()
     , d_(std::make_unique<d>())
 {}
 
-void LivePlot::plot(double x, double y) const
+void LivePlot::plot(std::string_view quantity, double x, double y) const
 {
-    const auto msg = fmt::format(R"({{"x": {}, "y": {}}})", x, y);
+    const auto msg = fmt::format(R"({{"quantity": {}, "x": {}, "y": {}}})", quantity, x, y);
     log_->debug("sending message '{}'", msg);
     d_->send(msg);
 }
