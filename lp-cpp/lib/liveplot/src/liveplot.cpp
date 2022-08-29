@@ -45,13 +45,26 @@ public:
 
             Publisher pub;
 
-            while (true)
+            do
             {
                 zmq::message_t msg;
-                (void)sock.recv(msg);
+                try
+                {
+                    (void)sock.recv(msg);
+                }
+                catch (const zmq::error_t &e)
+                {
+                    if (keepRunning_)
+                    {
+                        throw e;
+                    }
+                }
 
-                pub.send(msg.to_string_view());
-            }
+                if (keepRunning_)
+                {
+                    pub.send(msg.to_string_view());
+                }
+            } while (keepRunning_);
         });
     }
 
@@ -60,10 +73,18 @@ public:
         sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
     }
 
+    void stop()
+    {
+        keepRunning_ = false;
+        ctx_.shutdown();
+        thPub_.join();
+    }
+
 private:
     zmq::context_t                 ctx_;
     std::unique_ptr<zmq::socket_t> sock_;
     std::thread                    thPub_;
+    bool                           keepRunning_{ true };
 };
 
 LivePlot::LivePlot()
@@ -78,6 +99,9 @@ void LivePlot::plot(double x, double y) const
     d_->send(msg);
 }
 
-LivePlot::~LivePlot() = default;
+LivePlot::~LivePlot()
+{
+    d_->stop();
+}
 
 } // namespace lp

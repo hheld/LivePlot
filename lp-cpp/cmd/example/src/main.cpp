@@ -5,9 +5,9 @@ int main()
 {
     lp::LivePlot lp;
 
-    while (true)
+    for (auto i = 0; i < 20; ++i)
     {
-        lp.plot(0.1, 1.2);
+        lp.plot(0.1 * i, 1.2 * i);
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
