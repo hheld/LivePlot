@@ -1,14 +1,14 @@
 #include <liveplot.h>
-#include <thread>
+// #include <thread>
 
 int main()
 {
     lp::LivePlot lp;
 
-    for (auto i = 0; i < 20; ++i)
+    for (auto i = 0; i < 200; ++i)
     {
-        lp.plot("test", 0.1 * i, 1.2 * i);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        lp.plot("test", i, i);
+        //        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     return 0;

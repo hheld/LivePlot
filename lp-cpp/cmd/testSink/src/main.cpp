@@ -1,5 +1,4 @@
 #include <logger.h>
-#include <thread>
 #include <zmq.hpp>
 
 int main()
@@ -8,8 +7,6 @@ int main()
     zmq::socket_t  sock(ctx, zmq::socket_type::pull);
 
     sock.connect("ipc://../../../test");
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     while (true)
     {

@@ -23,7 +23,12 @@ public:
 
     void send(std::string_view msg) const
     {
-        sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+        auto ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+
+        while (!ret)
+        {
+            ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+        }
     }
 
 private:
@@ -35,7 +40,8 @@ class LivePlot::d final
 {
 public:
     d()
-        : sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::pair))
+        : log_(logging::logger(loggerName))
+        , sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::pair))
     {
         sock_->bind("inproc://#1");
 
@@ -70,15 +76,24 @@ public:
 
     void send(std::string_view msg) const
     {
-        sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+        auto ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+
+        while (!ret)
+        {
+            ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+        }
     }
 
     void stop()
     {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
         keepRunning_ = false;
         ctx_.shutdown();
         thPub_.join();
     }
+
+    std::shared_ptr<spdlog::logger> log_;
 
 private:
     zmq::context_t                 ctx_;
@@ -88,14 +103,13 @@ private:
 };
 
 LivePlot::LivePlot()
-    : log_(logging::logger(loggerName))
-    , d_(std::make_unique<d>())
+    : d_(std::make_unique<d>())
 {}
 
 void LivePlot::plot(std::string_view quantity, double x, double y) const
 {
     const auto msg = fmt::format(R"({{"quantity": {}, "x": {}, "y": {}}})", quantity, x, y);
-    log_->debug("sending message '{}'", msg);
+    d_->log_->debug("sending message '{}'", msg);
     d_->send(msg);
 }
 
