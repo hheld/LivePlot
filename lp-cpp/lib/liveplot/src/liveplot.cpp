@@ -1,6 +1,7 @@
 #include "liveplot.h"
 #include "logger.h"
 
+#include <queue>
 #include <thread>
 #include <zmq.hpp>
 
@@ -10,21 +11,27 @@ namespace lp
 namespace
 {
 constexpr auto loggerName = "liveplot";
-}
+} // namespace
 
 class Publisher final
 {
 public:
     Publisher()
-        : sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::push))
+        : sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::pub))
     {
         sock_->bind("ipc://../../../test");
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    void send(std::string_view msg) const
+    void send(std::string_view quantity, std::string_view msg) const
     {
-        auto ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+        auto ret = sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
+        while (!ret)
+        {
+            ret = sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
+        }
 
+        ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
         while (!ret)
         {
             ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
@@ -34,6 +41,12 @@ public:
 private:
     zmq::context_t                 ctx_;
     std::unique_ptr<zmq::socket_t> sock_;
+};
+
+struct PubData
+{
+    zmq::message_t quantity;
+    zmq::message_t msg;
 };
 
 class LivePlot::d final
@@ -51,12 +64,20 @@ public:
 
             Publisher pub;
 
+            std::queue<PubData> q;
+
             do
             {
-                zmq::message_t msg;
                 try
                 {
+                    zmq::message_t quantity;
+                    (void)sock.recv(quantity);
+
+                    zmq::message_t msg;
                     (void)sock.recv(msg);
+
+                    fmt::print(stderr, "got msg '{}' for '{}'\n", msg.to_string_view(), quantity.to_string_view());
+                    q.push(PubData{ std::move(quantity), std::move(msg) });
                 }
                 catch (const zmq::error_t &e)
                 {
@@ -68,26 +89,40 @@ public:
 
                 if (keepRunning_)
                 {
-                    pub.send(msg.to_string_view());
+                    const auto &msg = q.front();
+                    pub.send(msg.quantity.to_string_view(), msg.msg.to_string_view());
+                    q.pop();
                 }
             } while (keepRunning_);
+
+            while (!q.empty())
+            {
+                const auto &msg = q.front();
+                pub.send(msg.quantity.to_string_view(), msg.msg.to_string_view());
+                q.pop();
+            }
         });
     }
 
-    void send(std::string_view msg) const
+    void send(std::string_view quantity, std::string_view msg) const
     {
-        auto ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+        auto ret = sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
+        while (!ret)
+        {
+            ret = sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
+        }
 
+        ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
         while (!ret)
         {
             ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
         }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     void stop()
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
         keepRunning_ = false;
         ctx_.shutdown();
         thPub_.join();
@@ -108,9 +143,9 @@ LivePlot::LivePlot()
 
 void LivePlot::plot(std::string_view quantity, double x, double y) const
 {
-    const auto msg = fmt::format(R"({{"quantity": {}, "x": {}, "y": {}}})", quantity, x, y);
-    d_->log_->debug("sending message '{}'", msg);
-    d_->send(msg);
+    const auto msg = fmt::format(R"({{"x": {}, "y": {}}})", x, y);
+    d_->log_->debug("sending message '{}' for '{}'", msg, quantity);
+    d_->send(quantity, msg);
 }
 
 LivePlot::~LivePlot()

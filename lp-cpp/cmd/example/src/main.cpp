@@ -1,5 +1,5 @@
 #include <liveplot.h>
-// #include <thread>
+#include <thread>
 
 int main()
 {
@@ -8,7 +8,7 @@ int main()
     for (auto i = 0; i < 200; ++i)
     {
         lp.plot("test", i, i);
-        //        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+//        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     return 0;
