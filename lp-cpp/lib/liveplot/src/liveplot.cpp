@@ -25,17 +25,8 @@ public:
 
     void send(std::string_view quantity, std::string_view msg) const
     {
-        auto ret = sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
-        while (!ret)
-        {
-            ret = sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
-        }
-
-        ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
-        while (!ret)
-        {
-            ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
-        }
+        sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
+        sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
     }
 
 private:
@@ -54,12 +45,12 @@ class LivePlot::d final
 public:
     d()
         : log_(logging::logger(loggerName))
-        , sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::pair))
+        , sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::req))
     {
         sock_->bind("inproc://#1");
 
         thPub_ = std::thread([this]() {
-            zmq::socket_t sock(ctx_, zmq::socket_type::pair);
+            zmq::socket_t sock(ctx_, zmq::socket_type::rep);
             sock.connect("inproc://#1");
 
             Publisher pub;
@@ -72,11 +63,12 @@ public:
                 {
                     zmq::message_t quantity;
                     (void)sock.recv(quantity);
+                    sock.send(zmq::str_buffer(""));
 
                     zmq::message_t msg;
                     (void)sock.recv(msg);
+                    sock.send(zmq::str_buffer(""));
 
-                    fmt::print(stderr, "got msg '{}' for '{}'\n", msg.to_string_view(), quantity.to_string_view());
                     q.push(PubData{ std::move(quantity), std::move(msg) });
                 }
                 catch (const zmq::error_t &e)
@@ -106,19 +98,17 @@ public:
 
     void send(std::string_view quantity, std::string_view msg) const
     {
-        auto ret = sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
-        while (!ret)
         {
-            ret = sock_->send(zmq::buffer(quantity), zmq::send_flags::sndmore);
+            sock_->send(zmq::buffer(quantity));
+            zmq::message_t rep;
+            (void)sock_->recv(rep);
         }
 
-        ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
-        while (!ret)
         {
-            ret = sock_->send(zmq::buffer(msg), zmq::send_flags::dontwait);
+            sock_->send(zmq::buffer(msg));
+            zmq::message_t rep;
+            (void)sock_->recv(rep);
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     void stop()
