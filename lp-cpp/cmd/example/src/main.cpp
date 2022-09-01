@@ -6,7 +6,8 @@ int main()
 
     for (auto i = 0; i < 20; ++i)
     {
-        lp.plot("test", i, i);
+        lp.plot("test1", i, i);
+        lp.plot("test2", -i, -i);
     }
 
     return 0;

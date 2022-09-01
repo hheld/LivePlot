@@ -10,7 +10,7 @@ extern "C" {
 typedef void *LivePlotSub;
 typedef void (*Callback)(double x, double y);
 
-API_LIVEPLOT_SUB_EXPORT LivePlotSub lpNewSubscription(const char *quantity, Callback cb);
+API_LIVEPLOT_SUB_EXPORT LivePlotSub lpNewSubscription(const char *connection, const char *quantity, Callback cb);
 API_LIVEPLOT_SUB_EXPORT void        lpDestroySubscription(LivePlotSub sub);
 
 #ifdef __cplusplus

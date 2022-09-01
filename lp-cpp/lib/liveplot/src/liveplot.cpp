@@ -19,8 +19,8 @@ public:
     Publisher()
         : sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::pub))
     {
-        sock_->bind("ipc://../../../test");
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        sock_->bind("tcp://0.0.0.0:12345");
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
     void send(std::string_view quantity, std::string_view msg) const

@@ -7,8 +7,10 @@
 namespace lp
 {
 
-LivePlotSubscription::LivePlotSubscription(std::string quantity, std::function<void(double, double)> &&cb)
+LivePlotSubscription::LivePlotSubscription(std::string connection, std::string quantity,
+                                           std::function<void(double, double)> &&cb)
     : quantity_(std::move(quantity))
+    , connection_(std::move(connection))
     , log_(logging::logger("liveplot-sub"))
     , ctx_(std::make_unique<zmq::context_t>())
     , cb_(std::move(cb))
@@ -29,7 +31,7 @@ void LivePlotSubscription::startListening() const
 {
     zmq::socket_t sock(*ctx_, zmq::socket_type::sub);
 
-    sock.connect("ipc://../../../test");
+    sock.connect(connection_);
     sock.set(zmq::sockopt::subscribe, quantity_);
 
     while (!quit_)
