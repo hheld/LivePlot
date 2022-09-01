@@ -15,6 +15,7 @@ include(GenerateExportHeader)
 generate_export_header(${LIB_NAME} PREFIX_NAME API_)
 
 find_package(cppzmq REQUIRED)
+find_package(nlohmann_json REQUIRED)
 
 set_target_properties(${LIB_NAME} PROPERTIES
                       CXX_STANDARD 17
@@ -27,6 +28,7 @@ target_link_libraries(${LIB_NAME}
                       PRIVATE
                       logging_obj
                       cppzmq
+                      nlohmann_json::nlohmann_json
                       )
 
 target_include_directories(${LIB_NAME}

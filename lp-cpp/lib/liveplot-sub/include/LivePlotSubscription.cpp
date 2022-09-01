@@ -1,6 +1,7 @@
 #include "LivePlotSubscription.h"
 #include "logger.h"
 
+#include <nlohmann/json.hpp>
 #include <zmq.hpp>
 
 namespace lp
@@ -66,7 +67,9 @@ void LivePlotSubscription::startListening() const
 
         if (!quit_)
         {
-            cb_(1.1, 2.2);
+            using json         = nlohmann::json;
+            const auto jsonMsg = json::parse(msg.to_string_view());
+            cb_(jsonMsg["x"].get<double>(), jsonMsg["y"].get<double>());
         }
     }
 
