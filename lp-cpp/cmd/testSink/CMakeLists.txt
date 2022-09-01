@@ -16,6 +16,7 @@ target_link_libraries(${EXE_TARGET}
                       PRIVATE
                       logging_obj
                       cppzmq
+                      liveplot-sub
                       )
 
 target_include_directories(${EXE_TARGET}
