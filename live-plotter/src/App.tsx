@@ -12,7 +12,7 @@ function App() {
     }
 
     const subscribe = async () => {
-        await invoke("subscribe", {name})
+        await invoke("subscribe", {quantity: name});
     };
 
     return (

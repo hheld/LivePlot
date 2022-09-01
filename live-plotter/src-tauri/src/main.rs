@@ -3,13 +3,13 @@
     windows_subsystem = "windows"
 )]
 
-use std::ffi::c_void;
+use std::ffi::{c_void, CString};
 use std::os::raw::c_char;
 
 type Callback = extern "C" fn(x: f64, y: f64);
 
 pub extern "C" fn cb(x: f64, y: f64) {
-    println!("got this: ({}, {})", x, y);
+    println!("got this: ({}, {})!", x, y);
 }
 
 extern "C" {
@@ -28,13 +28,11 @@ fn greet(name: &str) -> String {
 
 #[tauri::command]
 fn subscribe(quantity: &str) {
-    let _sub = unsafe {
-        lpNewSubscription(
-            "tcp://localhost:12345".as_ptr() as *const c_char,
-            quantity.as_ptr() as *const c_char,
-            cb,
-        )
-    };
+    let connection_c_str =
+        CString::new("tcp://localhost:12345").expect("could not create Rust string");
+    let quantity_c_str = CString::new(quantity).expect("could not create Rust string");
+
+    let _sub = unsafe { lpNewSubscription(connection_c_str.as_ptr(), quantity_c_str.as_ptr(), cb) };
 }
 
 fn main() {
