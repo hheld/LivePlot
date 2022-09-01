@@ -25,6 +25,8 @@ LivePlotSubscription::~LivePlotSubscription()
     quit_ = true;
     ctx_->shutdown();
     listenThread_.join();
+
+    log_->info("stopped subscription to '{}'", quantity_);
 }
 
 void LivePlotSubscription::startListening() const

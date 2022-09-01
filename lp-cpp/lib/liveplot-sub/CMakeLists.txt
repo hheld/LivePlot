@@ -2,8 +2,8 @@ set(LIB_NAME liveplot-sub)
 
 set(SOURCES_AND_PRIVATE_HEADERS
     src/liveplot-sub.cpp
-    include/LivePlotSubscription.cpp
-    include/LivePlotSubscription.h)
+    src/LivePlotSubscription.cpp
+    src/LivePlotSubscription.h)
 
 set(PUBLIC_HEADERS
     include/liveplot-sub.h
