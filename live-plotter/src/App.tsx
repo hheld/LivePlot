@@ -15,6 +15,10 @@ function App() {
         await invoke("subscribe", {quantity: name});
     };
 
+    const unsubscribe = async () => {
+        await invoke("unsubscribe", {quantity: name});
+    };
+
     return (
         <div className="container">
             <h1>Welcome to Tauri!</h1>
@@ -45,6 +49,9 @@ function App() {
                     </button>
                     <button type="button" onClick={() => subscribe()}>
                         Subscribe
+                    </button>
+                    <button type="button" onClick={() => unsubscribe()}>
+                        Unsubscribe
                     </button>
                 </div>
             </div>
