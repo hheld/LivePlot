@@ -57,7 +57,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "live-plotter",
+        "title": "LivePlot",
         "width": 800
       }
     ]
