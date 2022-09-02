@@ -21,17 +21,19 @@ namespace lp
 class LivePlotSubscription final
 {
 public:
-    LivePlotSubscription(std::string connection, std::string quantity, std::function<void(double, double)> &&cb);
+    LivePlotSubscription(std::string connection, std::string quantity, void *state,
+                         std::function<void(double, double, void *)> &&cb);
     ~LivePlotSubscription();
 
 private:
     const std::string quantity_;
     const std::string connection_;
+    void             *state_;
 
     std::shared_ptr<spdlog::logger> log_;
     std::unique_ptr<zmq::context_t> ctx_;
 
-    std::function<void(double, double)> cb_;
+    std::function<void(double, double, void *)> cb_;
 
     bool        quit_{ false };
     std::thread listenThread_;

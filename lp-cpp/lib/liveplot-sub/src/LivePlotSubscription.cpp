@@ -7,10 +7,11 @@
 namespace lp
 {
 
-LivePlotSubscription::LivePlotSubscription(std::string connection, std::string quantity,
-                                           std::function<void(double, double)> &&cb)
+LivePlotSubscription::LivePlotSubscription(std::string connection, std::string quantity, void *state,
+                                           std::function<void(double, double, void *)> &&cb)
     : quantity_(std::move(quantity))
     , connection_(std::move(connection))
+    , state_(state)
     , log_(logging::logger("liveplot-sub"))
     , ctx_(std::make_unique<zmq::context_t>())
     , cb_(std::move(cb))
@@ -73,7 +74,7 @@ void LivePlotSubscription::startListening() const
         {
             using json         = nlohmann::json;
             const auto jsonMsg = json::parse(msg.to_string_view());
-            cb_(jsonMsg["x"].get<double>(), jsonMsg["y"].get<double>());
+            cb_(jsonMsg["x"].get<double>(), jsonMsg["y"].get<double>(), state_);
         }
     }
 

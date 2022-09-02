@@ -2,14 +2,15 @@ import {useState} from "react";
 import reactLogo from "./assets/react.svg";
 import {invoke} from "@tauri-apps/api/tauri";
 import "./App.css";
+import {listen} from "@tauri-apps/api/event";
+
+await listen("data", (event) => {
+    console.log("got event!!", event.payload);
+})
 
 function App() {
     const [greetMsg, setGreetMsg] = useState("");
     const [name, setName] = useState("");
-
-    async function greet() {
-        setGreetMsg(await invoke("greet", {name}));
-    }
 
     const subscribe = async () => {
         await invoke("subscribe", {quantity: name});
@@ -44,9 +45,6 @@ function App() {
                         onChange={(e) => setName(e.currentTarget.value)}
                         placeholder="Enter a name..."
                     />
-                    <button type="button" onClick={() => greet()}>
-                        Greet
-                    </button>
                     <button type="button" onClick={() => subscribe()}>
                         Subscribe
                     </button>
