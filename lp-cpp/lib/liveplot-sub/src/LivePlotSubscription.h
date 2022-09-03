@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
@@ -35,8 +36,8 @@ private:
 
     std::function<void(double, double, void *)> cb_;
 
-    bool        quit_{ false };
-    std::thread listenThread_;
+    std::atomic<bool> quit_{ false };
+    std::thread       listenThread_;
 
     void startListening() const;
 };

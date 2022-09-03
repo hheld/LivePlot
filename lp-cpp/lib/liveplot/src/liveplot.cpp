@@ -1,6 +1,7 @@
 #include "liveplot.h"
 #include "logger.h"
 
+#include <atomic>
 #include <queue>
 #include <thread>
 #include <zmq.hpp>
@@ -96,8 +97,10 @@ public:
         });
     }
 
-    void send(std::string_view quantity, std::string_view msg) const
+    void send(std::string_view quantity, std::string_view msg)
     {
+        const std::lock_guard<std::mutex> lock(mtx_);
+
         {
             sock_->send(zmq::buffer(quantity));
             zmq::message_t rep;
@@ -124,7 +127,8 @@ private:
     zmq::context_t                 ctx_;
     std::unique_ptr<zmq::socket_t> sock_;
     std::thread                    thPub_;
-    bool                           keepRunning_{ true };
+    std::atomic<bool>              keepRunning_{ true };
+    std::mutex                     mtx_;
 };
 
 LivePlot::LivePlot()
