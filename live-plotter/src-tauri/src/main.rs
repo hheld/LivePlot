@@ -3,13 +3,13 @@
     windows_subsystem = "windows"
 )]
 
-use std::collections::HashMap;
-use std::ffi::{c_void, CString};
+use std::collections::{HashMap, HashSet};
+use std::ffi::{c_void, CStr, CString};
 use std::os::raw::c_char;
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, State, Wry};
 
-type Callback = extern "C" fn(x: f64, y: f64, state: *mut c_void);
+type Callback = extern "C" fn(x: f64, y: f64, quantity: *const c_char, state: *mut c_void);
 
 struct RawPointer(*mut c_void);
 unsafe impl Send for RawPointer {}
@@ -21,10 +21,16 @@ struct EventPayload {
     quantity: String,
 }
 
-extern "C" fn cb(x: f64, y: f64, state: *mut c_void) {
+extern "C" fn cb(x: f64, y: f64, quantity: *const c_char, state: *mut c_void) {
     let state_ptr = state as *mut CallbackData;
 
+    let quantity_rs_str = {
+        let c_str = unsafe { CStr::from_ptr(quantity) };
+        c_str.to_str().unwrap().to_owned()
+    };
+
     let state = unsafe { state_ptr.as_ref().unwrap() };
+
     state
         .app_handle
         .emit_all(
@@ -32,14 +38,34 @@ extern "C" fn cb(x: f64, y: f64, state: *mut c_void) {
             EventPayload {
                 x,
                 y,
-                quantity: state.quantity.clone(),
+                quantity: quantity_rs_str,
             },
         )
         .unwrap();
 }
 
+extern "C" fn cb_all(_x: f64, _y: f64, quantity: *const c_char, state: *mut c_void) {
+    let state_ptr = state as *mut CallbackData;
+
+    let state = unsafe { state_ptr.as_ref().unwrap() };
+
+    let quantity_rs_str = {
+        let c_str = unsafe { CStr::from_ptr(quantity) };
+        c_str.to_str().unwrap().to_owned()
+    };
+
+    let app_state: State<'_, AppState> = state.app_handle.state();
+    let mut known_quantities = app_state.quantities.lock().unwrap();
+
+    if known_quantities.insert(quantity_rs_str.clone()) {
+        state
+            .app_handle
+            .emit_all("newQuantity", quantity_rs_str)
+            .unwrap();
+    }
+}
+
 struct CallbackData {
-    quantity: String,
     app_handle: AppHandle<Wry>,
 }
 
@@ -56,6 +82,7 @@ extern "C" {
 struct AppState {
     subscriptions: Mutex<HashMap<String, RawPointer>>,
     callback_data: Mutex<HashMap<String, RawPointer>>,
+    quantities: Mutex<HashSet<String>>,
 }
 
 #[tauri::command]
@@ -71,10 +98,7 @@ fn subscribe(quantity: &str, app_state: State<'_, AppState>, app_handle: AppHand
         CString::new("tcp://localhost:12345").expect("could not create Rust string");
     let quantity_c_str = CString::new(quantity).expect("could not create Rust string");
 
-    let cb_data = Box::new(CallbackData {
-        app_handle,
-        quantity: quantity.to_string(),
-    });
+    let cb_data = Box::new(CallbackData { app_handle });
 
     let cb_data_raw = Box::into_raw(cb_data) as *mut c_void;
 
@@ -116,8 +140,31 @@ fn main() {
         .manage(AppState {
             subscriptions: Mutex::new(HashMap::new()),
             callback_data: Mutex::new(HashMap::new()),
+            quantities: Mutex::new(HashSet::new()),
         })
         .invoke_handler(tauri::generate_handler![subscribe, unsubscribe])
+        .setup(|app| {
+            let connection_c_str =
+                CString::new("tcp://localhost:12345").expect("could not create Rust string");
+            let quantity_c_str = CString::new("").expect("could not create Rust string");
+
+            let cb_data = Box::new(CallbackData {
+                app_handle: app.app_handle(),
+            });
+
+            let cb_data_raw = Box::into_raw(cb_data) as *mut c_void;
+
+            unsafe {
+                lpNewSubscription(
+                    connection_c_str.as_ptr(),
+                    quantity_c_str.as_ptr(),
+                    cb_data_raw,
+                    cb_all,
+                )
+            };
+
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -6,6 +6,10 @@ await listen("data", (event) => {
     console.log("got event!!", event.payload);
 })
 
+await listen("newQuantity", (event) => {
+    console.log("got new quantity", event.payload);
+})
+
 const App = () => {
     const [topic, setTopic] = useState("");
 

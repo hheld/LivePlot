@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 typedef void *LivePlotSub;
-typedef void (*Callback)(double x, double y, void *state);
+typedef void (*Callback)(double x, double y, const char *quantity, void *state);
 
 API_LIVEPLOT_SUB_EXPORT LivePlotSub lpNewSubscription(const char *connection, const char *quantity, void *state,
                                                       Callback cb);

@@ -137,7 +137,7 @@ LivePlot::LivePlot()
 
 void LivePlot::plot(std::string_view quantity, double x, double y) const
 {
-    const auto msg = fmt::format(R"({{"x": {}, "y": {}}})", x, y);
+    const auto msg = fmt::format(R"({{"x":{},"y":{},"quantity":"{}"}})", x, y, quantity);
     d_->log_->debug("sending message '{}' for '{}'", msg, quantity);
     d_->send(quantity, msg);
 }

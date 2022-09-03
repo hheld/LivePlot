@@ -4,13 +4,15 @@
 
 int main()
 {
-    auto *sub1 = lpNewSubscription("tcp://localhost:12345", "sin", nullptr, [](double x, double y, void *) {
-        fmt::print("got values for sin: ({}, {})\n", x, y);
-    });
+    auto *sub1 = lpNewSubscription("tcp://localhost:12345", "sin", nullptr,
+                                   [](double x, double y, const char *quantity, void *) {
+                                       fmt::print("got values for {}: ({}, {})\n", quantity, x, y);
+                                   });
 
-    auto *sub2 = lpNewSubscription("tcp://localhost:12345", "cos", nullptr, [](double x, double y, void *) {
-        fmt::print("got values for cos: ({}, {})\n", x, y);
-    });
+    auto *sub2 = lpNewSubscription("tcp://localhost:12345", "cos", nullptr,
+                                   [](double x, double y, const char *quantity, void *) {
+                                       fmt::print("got values for {}: ({}, {})\n", quantity, x, y);
+                                   });
 
     std::cout << "Press enter to exit this program\n";
     std::cin.ignore();

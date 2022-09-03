@@ -23,7 +23,7 @@ class LivePlotSubscription final
 {
 public:
     LivePlotSubscription(std::string connection, std::string quantity, void *state,
-                         std::function<void(double, double, void *)> &&cb);
+                         std::function<void(double, double, const char *, void *)> &&cb);
     ~LivePlotSubscription();
 
 private:
@@ -34,7 +34,7 @@ private:
     std::shared_ptr<spdlog::logger> log_;
     std::unique_ptr<zmq::context_t> ctx_;
 
-    std::function<void(double, double, void *)> cb_;
+    std::function<void(double, double, const char *, void *)> cb_;
 
     std::atomic<bool> quit_{ false };
     std::thread       listenThread_;

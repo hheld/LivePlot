@@ -8,7 +8,7 @@ namespace lp
 {
 
 LivePlotSubscription::LivePlotSubscription(std::string connection, std::string quantity, void *state,
-                                           std::function<void(double, double, void *)> &&cb)
+                                           std::function<void(double, double, const char *, void *)> &&cb)
     : quantity_(std::move(quantity))
     , connection_(std::move(connection))
     , state_(state)
@@ -74,7 +74,8 @@ void LivePlotSubscription::startListening() const
         {
             using json         = nlohmann::json;
             const auto jsonMsg = json::parse(msg.to_string_view());
-            cb_(jsonMsg["x"].get<double>(), jsonMsg["y"].get<double>(), state_);
+            cb_(jsonMsg["x"].get<double>(), jsonMsg["y"].get<double>(), jsonMsg["quantity"].get<std::string>().c_str(),
+                state_);
         }
     }
 
