@@ -1,6 +1,6 @@
 import {listen, Event} from "@tauri-apps/api/event";
 import AvailableQuantities from "./AvailableQuantities";
-import {Box, Flex} from "@chakra-ui/react";
+import {Box, VStack} from "@chakra-ui/react";
 import {Scatter} from "react-chartjs-2";
 import {Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Legend, Tooltip} from "chart.js";
 import {useCallback, useEffect, useState} from "react";
@@ -77,15 +77,15 @@ const App = () => {
     }, [newDataCallback]);
 
     return (
-        <Flex>
-            <Box shadow="md" borderWidth="1px">
+        <VStack align="stretch">
+            <Box shadow="md" borderWidth="1px" w="50%">
                 <AvailableQuantities/>
             </Box>
 
-            <Box shadow="md" borderWidth="1px">
-                <Scatter data={points} height="100%" options={{maintainAspectRatio: false}}></Scatter>
+            <Box shadow="md" borderWidth="1px" h="500px">
+                <Scatter data={points} options={{maintainAspectRatio: false, responsive: true}}></Scatter>
             </Box>
-        </Flex>
+        </VStack>
     );
 }
 
