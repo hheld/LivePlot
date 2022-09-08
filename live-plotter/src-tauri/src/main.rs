@@ -21,6 +21,12 @@ struct EventPayload {
     quantity: String,
 }
 
+#[derive(Clone, serde::Serialize)]
+struct KnownQuantityPayload {
+    quantity: String,
+    subscribed: bool,
+}
+
 extern "C" fn cb(x: f64, y: f64, quantity: *const c_char, state: *mut c_void) {
     let state_ptr = state as *mut CallbackData;
 
@@ -135,6 +141,17 @@ fn unsubscribe(quantity: &str, app_state: State<'_, AppState>) {
     callback_data.remove(quantity);
 }
 
+#[tauri::command]
+fn known_quantities(app_state: State<'_, AppState>) -> Vec<KnownQuantityPayload> {
+    let known_quantities = app_state.quantities.lock().unwrap();
+    let subscriptions = app_state.subscriptions.lock().unwrap();
+
+    Vec::from_iter(known_quantities.iter().map(|s| KnownQuantityPayload {
+        quantity: s.clone(),
+        subscribed: subscriptions.contains_key(s),
+    }))
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(AppState {
@@ -142,7 +159,11 @@ fn main() {
             callback_data: Mutex::new(HashMap::new()),
             quantities: Mutex::new(HashSet::new()),
         })
-        .invoke_handler(tauri::generate_handler![subscribe, unsubscribe])
+        .invoke_handler(tauri::generate_handler![
+            subscribe,
+            unsubscribe,
+            known_quantities
+        ])
         .setup(|app| {
             let connection_c_str =
                 CString::new("tcp://localhost:12345").expect("could not create Rust string");

@@ -1,7 +1,7 @@
 import {listen} from "@tauri-apps/api/event";
 import {availableQuantities, availableQuantitiesStore, storeAvailableQuantity} from "./availableQuantitiesStore";
 import {useEffect, useState} from "react";
-import {Switch, TableCaption, TableContainer, Tbody, Td, Thead, Tr, Table, Th} from "@chakra-ui/react";
+import {Switch, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
 import {invoke} from "@tauri-apps/api/tauri";
 
 await listen("newQuantity", (event) => {
@@ -16,10 +16,49 @@ const unsubscribe = async (topic: string) => {
     await invoke("unsubscribe", {quantity: topic});
 };
 
+const getAvailableQuantity = async () => {
+    return await invoke("known_quantities");
+};
+
+interface KnownSubscription {
+    quantity: string;
+    subscribed: boolean;
+}
+
 const AvailableQuantities = () => {
     const [quantities, setQuantities] = useState(availableQuantities());
+    const [subscriptions, setSubscriptions] = useState(new Set<string>());
+
+    const addSubscription = (quantity: string) => {
+        setSubscriptions(prev => new Set(prev.add(quantity)));
+    };
+
+    const removeSubscription = (quantity: string) => {
+        setSubscriptions(prev => {
+            return new Set([...prev].filter(s => s !== quantity));
+        });
+    };
 
     useEffect(() => {
+        const alreadyAvailableQuantities = getAvailableQuantity();
+
+        alreadyAvailableQuantities.then((q) => {
+            const quantities = (q as KnownSubscription[]).map(qq => {
+                    const {quantity, subscribed} = qq;
+
+                    if (subscribed) {
+                        addSubscription(quantity);
+                    } else if (subscriptions.has(quantity)) {
+                        removeSubscription(quantity);
+                    }
+
+                    return quantity;
+                }
+            );
+
+            setQuantities(quantities);
+        });
+
         availableQuantitiesStore.subscribe(
             state => setQuantities(state.availableQuantities),
         );
@@ -28,7 +67,11 @@ const AvailableQuantities = () => {
     const quantitiesTable = quantities.map(q => (
         <Tr key={q}>
             <Td>{q}</Td>
-            <Td><Switch size='sm' onChange={(e) => e.currentTarget.checked ? subscribe(q) : unsubscribe(q)}/></Td>
+            <Td><Switch size='sm' isChecked={subscriptions.has(q)}
+                        onChange={(e) => e.currentTarget.checked
+                            ? subscribe(q).then(() => addSubscription(q))
+                            : unsubscribe(q).then(() => removeSubscription(q))
+                        }/></Td>
         </Tr>
     ));
 
