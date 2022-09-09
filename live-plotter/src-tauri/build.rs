@@ -50,5 +50,12 @@ fn main() {
     )
     .expect("could not copy libliveplot-sub.so to user's lib folder");
 
+    // this makes bundling as a Debian package easier
+    std::fs::copy(
+        format!("{}/lib/libliveplot-sub.so", &out_dir),
+        format!("{}/../../../libliveplot-sub.so", &out_dir),
+    )
+    .expect("could not copy libliveplot-sub.so to build folder");
+
     tauri_build::build()
 }

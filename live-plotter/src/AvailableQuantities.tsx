@@ -4,9 +4,11 @@ import {useEffect, useState} from "react";
 import {Switch, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
 import {invoke} from "@tauri-apps/api/tauri";
 
-await listen("newQuantity", (event) => {
-    storeAvailableQuantity(event.payload as string);
-});
+const listenToNewQuantities = async () => {
+    await listen("newQuantity", (event) => {
+        storeAvailableQuantity(event.payload as string);
+    });
+};
 
 const subscribe = async (topic: string) => {
     await invoke("subscribe", {quantity: topic});
@@ -40,6 +42,8 @@ const AvailableQuantities = () => {
     };
 
     useEffect(() => {
+        listenToNewQuantities();
+
         const alreadyAvailableQuantities = getAvailableQuantity();
 
         alreadyAvailableQuantities.then((q) => {

@@ -11,14 +11,17 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": false
     },
     "bundle": {
       "active": true,
       "category": "DeveloperTool",
-      "copyright": "",
+      "copyright": "Harald Held <harald.held@gmail.com>",
       "deb": {
-        "depends": []
+        "depends": [],
+        "files": {
+          "/usr/lib/libliveplot-sub.so": "./target/release/libliveplot-sub.so"
+        }
       },
       "externalBin": [],
       "icon": [
@@ -28,7 +31,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.tauri.dev",
+      "identifier": "hheld",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
