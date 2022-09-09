@@ -10,6 +10,8 @@ const listenToNewQuantities = async () => {
     });
 };
 
+listenToNewQuantities();
+
 const subscribe = async (topic: string) => {
     await invoke("subscribe", {quantity: topic});
 };
@@ -42,8 +44,6 @@ const AvailableQuantities = () => {
     };
 
     useEffect(() => {
-        listenToNewQuantities();
-
         const alreadyAvailableQuantities = getAvailableQuantity();
 
         alreadyAvailableQuantities.then((q) => {
