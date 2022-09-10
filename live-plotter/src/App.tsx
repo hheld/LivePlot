@@ -8,10 +8,10 @@ import {useCallback, useEffect, useState} from "react";
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Legend, Tooltip);
 
 interface DataItem {
-    data: [{
+    data: {
         x: number;
         y: number;
-    }];
+    }[];
     label: string,
     borderColor: string,
     showLine: boolean,
@@ -53,13 +53,16 @@ const App = () => {
                 };
 
                 current = [newEntry as DataItem];
-            } else {
-                current.forEach((value, index, arr) => {
-                    arr[index].data.push({
+            } else if (current.length == 1) {
+                const dv = current[0];
+
+                current = [{
+                    ...dv,
+                    data: [...dv.data, {
                         x: (event.payload as { x: number, y: number }).x,
                         y: (event.payload as { x: number, y: number }).y
-                    });
-                });
+                    }]
+                }];
             }
 
             return {
@@ -73,7 +76,13 @@ const App = () => {
     }, []);
 
     useEffect(() => {
-        listen("data", newDataCallback);
+        const unlistenFnPromise = listen("data", newDataCallback);
+
+        return () => {
+            unlistenFnPromise
+                .then(f => f())
+                .catch(e => console.error(e));
+        };
     }, [newDataCallback]);
 
     return (
