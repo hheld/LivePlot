@@ -1,5 +1,6 @@
 #include <atomic>
 #include <cmath>
+#include <condition_variable>
 #include <iostream>
 #include <liveplot.h>
 #include <thread>
@@ -16,30 +17,38 @@ int main()
     double            t     = 0;
     constexpr auto    tStep = 0.2;
 
-    auto th_clock = std::thread([&t, &quit, logger] {
+    std::mutex              mtx;
+    std::condition_variable cv;
+
+    auto th_clock = std::thread([&t, &quit, logger, &cv] {
         while (!quit)
         {
             logger->info("time: {} seconds", t);
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int64_t>(1000. * tStep)));
             t += tStep;
+            cv.notify_all();
         }
     });
 
-    auto th1 = std::thread([&lp, &t, &quit, logger] {
+    auto th1 = std::thread([&lp, &t, &quit, logger, &mtx, &cv] {
         while (!quit)
         {
+            std::unique_lock lock(mtx);
+            cv.wait(lock);
+
             logger->info("sending sin({})", t);
             lp.plot("sin", t, sin(t));
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
     });
 
-    auto th2 = std::thread([&lp, &t, &quit, logger] {
+    auto th2 = std::thread([&lp, &t, &quit, logger, &mtx, &cv] {
         while (!quit)
         {
+            std::unique_lock lock(mtx);
+            cv.wait(lock);
+
             logger->info("sending cos({})", t);
             lp.plot("cos", t, cos(t));
-            std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         }
     });
 
