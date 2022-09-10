@@ -92,7 +92,8 @@ const App = () => {
             </Box>
 
             <Box shadow="md" borderWidth="1px" h="500px">
-                <Scatter data={points} options={{maintainAspectRatio: false, responsive: true}}></Scatter>
+                <Scatter data={points}
+                         options={{maintainAspectRatio: false, responsive: true, animation: false}}></Scatter>
             </Box>
         </VStack>
     );
