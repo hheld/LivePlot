@@ -89,19 +89,20 @@ struct AppState {
     subscriptions: Mutex<HashMap<String, RawPointer>>,
     callback_data: Mutex<HashMap<String, RawPointer>>,
     quantities: Mutex<HashSet<String>>,
+    connection: Mutex<String>,
 }
 
 #[tauri::command]
 fn subscribe(quantity: &str, app_state: State<'_, AppState>, app_handle: AppHandle<Wry>) {
     let mut subscriptions = app_state.subscriptions.lock().unwrap();
+    let connection = app_state.connection.lock().unwrap();
 
     if subscriptions.contains_key(quantity) {
         println!("already subscribed to '{}'", quantity);
         return;
     }
 
-    let connection_c_str =
-        CString::new("tcp://localhost:12345").expect("could not create Rust string");
+    let connection_c_str = CString::new(&**connection).expect("could not create Rust string");
     let quantity_c_str = CString::new(quantity).expect("could not create Rust string");
 
     let cb_data = Box::new(CallbackData { app_handle });
@@ -152,40 +153,50 @@ fn known_quantities(app_state: State<'_, AppState>) -> Vec<KnownQuantityPayload>
     }))
 }
 
+#[tauri::command]
+fn connect(connection: &str, app_state: State<'_, AppState>, app_handle: AppHandle<Wry>) {
+    let mut connection_target = app_state.connection.lock().unwrap();
+    *connection_target = connection.to_string();
+
+    let connection_c_str = CString::new(connection).expect("could not create Rust string");
+
+    let quantity_c_str = CString::new("").expect("could not create Rust string");
+
+    let cb_data = Box::new(CallbackData { app_handle });
+
+    let cb_data_raw = Box::into_raw(cb_data) as *mut c_void;
+
+    unsafe {
+        lpNewSubscription(
+            connection_c_str.as_ptr(),
+            quantity_c_str.as_ptr(),
+            cb_data_raw,
+            cb_all,
+        )
+    };
+}
+
+#[tauri::command]
+fn current_connection(app_state: State<'_, AppState>) -> String {
+    let connection = app_state.connection.lock().unwrap();
+    return connection.clone();
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(AppState {
             subscriptions: Mutex::new(HashMap::new()),
             callback_data: Mutex::new(HashMap::new()),
             quantities: Mutex::new(HashSet::new()),
+            connection: Mutex::new(String::new()),
         })
         .invoke_handler(tauri::generate_handler![
             subscribe,
             unsubscribe,
-            known_quantities
+            known_quantities,
+            connect,
+            current_connection
         ])
-        .setup(|app| {
-            let connection_c_str =
-                CString::new("tcp://localhost:12345").expect("could not create Rust string");
-            let quantity_c_str = CString::new("").expect("could not create Rust string");
-
-            let cb_data = Box::new(CallbackData {
-                app_handle: app.app_handle(),
-            });
-
-            let cb_data_raw = Box::into_raw(cb_data) as *mut c_void;
-
-            unsafe {
-                lpNewSubscription(
-                    connection_c_str.as_ptr(),
-                    quantity_c_str.as_ptr(),
-                    cb_data_raw,
-                    cb_all,
-                )
-            };
-
-            Ok(())
-        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

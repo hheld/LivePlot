@@ -1,9 +1,10 @@
 import {listen, Event} from "@tauri-apps/api/event";
 import AvailableQuantities from "./AvailableQuantities";
-import {Box, VStack} from "@chakra-ui/react";
+import {Box, Button, HStack, Input, Text, VStack} from "@chakra-ui/react";
 import {Scatter} from "react-chartjs-2";
 import {Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Legend, Tooltip} from "chart.js";
-import {useCallback, useEffect, useState} from "react";
+import {ChangeEvent, useCallback, useEffect, useState} from "react";
+import {invoke} from "@tauri-apps/api/tauri";
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Legend, Tooltip);
 
@@ -31,6 +32,15 @@ const getRandomColor = () => {
 
 const App = () => {
     const [points, setPoints] = useState<Data>({datasets: []});
+    const [connection, setConnection] = useState("");
+
+    const handleConnection = (event: ChangeEvent<HTMLInputElement>) => {
+        setConnection(event.target.value);
+    };
+
+    const connect = async () => {
+        await invoke("connect", {connection});
+    };
 
     const newDataCallback = useCallback((event: Event<unknown>) => {
         const pl = event.payload as { x: number, y: number, quantity: string };
@@ -76,6 +86,10 @@ const App = () => {
     }, []);
 
     useEffect(() => {
+        invoke("current_connection").then(v => setConnection(v as string));
+    }, []);
+
+    useEffect(() => {
         const unlistenFnPromise = listen("data", newDataCallback);
 
         return () => {
@@ -87,9 +101,17 @@ const App = () => {
 
     return (
         <VStack align="stretch">
-            <Box shadow="md" borderWidth="1px" w="50%">
-                <AvailableQuantities/>
-            </Box>
+            <HStack>
+                <Box shadow="md" borderWidth="1px" w="50%">
+                    <AvailableQuantities/>
+                </Box>
+
+                <Box shadow="md" borderWidth="1px" w="50%">
+                    <Text>Connection</Text>
+                    <Input value={connection} onChange={handleConnection}/>
+                    <Button onClick={connect}>Connect</Button>
+                </Box>
+            </HStack>
 
             <Box shadow="md" borderWidth="1px" h="500px">
                 <Scatter data={points}
