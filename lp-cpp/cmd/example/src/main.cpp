@@ -7,11 +7,17 @@
 
 #include <logger.h>
 
-int main()
+int main(int argc, const char *argv[])
 {
+    if (argc != 2)
+    {
+        fmt::print(stderr, "Usage: {} <connection>", argv[0]);
+        return 1;
+    }
+
     auto logger = logging::logger("example");
 
-    lp::LivePlot lp;
+    lp::LivePlot lp(argv[1]);
 
     std::atomic<bool> quit{ false };
     double            t     = 0;

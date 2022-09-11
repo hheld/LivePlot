@@ -17,10 +17,10 @@ constexpr auto loggerName = "liveplot";
 class Publisher final
 {
 public:
-    Publisher()
+    explicit Publisher(std::string_view connection)
         : sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::pub))
     {
-        sock_->bind("tcp://0.0.0.0:12345");
+        sock_->bind(connection.data());
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
@@ -44,9 +44,10 @@ struct PubData
 class LivePlot::d final
 {
 public:
-    d()
+    explicit d(std::string connection)
         : log_(logging::logger(loggerName))
         , sock_(std::make_unique<zmq::socket_t>(ctx_, zmq::socket_type::req))
+        , connection_(std::move(connection))
     {
         sock_->bind("inproc://#1");
 
@@ -54,7 +55,7 @@ public:
             zmq::socket_t sock(ctx_, zmq::socket_type::rep);
             sock.connect("inproc://#1");
 
-            Publisher pub;
+            Publisher pub(connection_);
 
             std::queue<PubData> q;
 
@@ -129,10 +130,11 @@ private:
     std::thread                    thPub_;
     std::atomic<bool>              keepRunning_{ true };
     std::mutex                     mtx_;
+    const std::string              connection_;
 };
 
-LivePlot::LivePlot()
-    : d_(std::make_unique<d>())
+LivePlot::LivePlot(std::string connection)
+    : d_(std::make_unique<d>(std::move(connection)))
 {}
 
 void LivePlot::plot(std::string_view quantity, double x, double y) const
