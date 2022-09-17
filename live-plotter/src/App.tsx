@@ -1,6 +1,6 @@
 import {listen, Event} from "@tauri-apps/api/event";
 import AvailableQuantities from "./AvailableQuantities";
-import {Box, Button, HStack, Input, Text, VStack} from "@chakra-ui/react";
+import {Box, Button, Container, FormLabel, HStack, Input, Stack, VStack, FormControl} from "@chakra-ui/react";
 import {Scatter} from "react-chartjs-2";
 import {Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Legend, Tooltip} from "chart.js";
 import {ChangeEvent, useCallback, useEffect, useState} from "react";
@@ -101,21 +101,27 @@ const App = () => {
 
     return (
         <VStack align="stretch">
-            <HStack>
+            <HStack align="stretch">
                 <Box shadow="md" borderWidth="1px" w="50%">
                     <AvailableQuantities/>
                 </Box>
 
                 <Box shadow="md" borderWidth="1px" w="50%">
-                    <Text>Connection</Text>
-                    <Input value={connection} onChange={handleConnection}/>
-                    <Button onClick={connect}>Connect</Button>
+                    <Stack align="baseline">
+                        <FormControl isRequired>
+                            <FormLabel>Connection</FormLabel>
+                            <Input value={connection} onChange={handleConnection}/>
+                        </FormControl>
+                        <Button onClick={connect}>Connect</Button>
+                    </Stack>
                 </Box>
             </HStack>
 
-            <Box shadow="md" borderWidth="1px" h="500px">
-                <Scatter data={points}
-                         options={{maintainAspectRatio: false, responsive: true, animation: false}}></Scatter>
+            <Box shadow="md" borderWidth="1px" h="300px">
+                <Container w="100%" centerContent maxW="100%" h="100%">
+                    <Scatter data={points}
+                             options={{maintainAspectRatio: false, responsive: true, animation: false}}></Scatter>
+                </Container>
             </Box>
         </VStack>
     );
