@@ -19,6 +19,13 @@ struct EventPayload {
     x: f64,
     y: f64,
     quantity: String,
+    connection: String,
+}
+
+#[derive(Clone, serde::Serialize)]
+struct QuantityPayload {
+    quantity: String,
+    connection: String,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -45,6 +52,7 @@ extern "C" fn cb(x: f64, y: f64, quantity: *const c_char, state: *mut c_void) {
                 x,
                 y,
                 quantity: quantity_rs_str,
+                connection: state.connection.clone(),
             },
         )
         .unwrap();
@@ -61,18 +69,26 @@ extern "C" fn cb_all(_x: f64, _y: f64, quantity: *const c_char, state: *mut c_vo
     };
 
     let app_state: State<'_, AppState> = state.app_handle.state();
-    let mut known_quantities = app_state.quantities.lock().unwrap();
+    let mut connections = app_state.connections.lock().unwrap();
+    let known_quantities = &mut connections.get_mut(&state.connection).unwrap().quantities;
 
     if known_quantities.insert(quantity_rs_str.clone()) {
         state
             .app_handle
-            .emit_all("newQuantity", quantity_rs_str)
+            .emit_all(
+                "newQuantity",
+                QuantityPayload {
+                    quantity: quantity_rs_str,
+                    connection: state.connection.clone(),
+                },
+            )
             .unwrap();
     }
 }
 
 struct CallbackData {
     app_handle: AppHandle<Wry>,
+    connection: String,
 }
 
 extern "C" {
@@ -86,28 +102,47 @@ extern "C" {
 }
 
 struct AppState {
-    subscriptions: Mutex<HashMap<String, RawPointer>>,
-    callback_data: Mutex<HashMap<String, RawPointer>>,
-    quantities: Mutex<HashSet<String>>,
-    connection: Mutex<String>,
+    connections: Mutex<HashMap<String, Connection>>,
+}
+
+struct Connection {
+    subscriptions: HashMap<String, SubscriptionData>,
+    quantities: HashSet<String>,
+}
+
+struct SubscriptionData {
+    raw_sub: RawPointer,
+    raw_cb_data: RawPointer,
 }
 
 #[tauri::command]
-fn subscribe(quantity: &str, app_state: State<'_, AppState>, app_handle: AppHandle<Wry>) {
-    let mut subscriptions = app_state.subscriptions.lock().unwrap();
-    let connection = app_state.connection.lock().unwrap();
+fn subscribe(
+    connection: &str,
+    quantity: &str,
+    app_state: State<'_, AppState>,
+    app_handle: AppHandle<Wry>,
+) {
+    let mut connections = app_state.connections.lock().unwrap();
+    let subscriptions = &mut connections.get_mut(connection).unwrap().subscriptions;
 
     if subscriptions.contains_key(quantity) {
-        println!("already subscribed to '{}'", quantity);
+        println!(
+            "already subscribed to '{}' for connection '{}'",
+            quantity, connection
+        );
         return;
     }
 
-    let connection_c_str = CString::new(&**connection).expect("could not create Rust string");
+    let connection_c_str = CString::new(connection).expect("could not create Rust string");
     let quantity_c_str = CString::new(quantity).expect("could not create Rust string");
 
-    let cb_data = Box::new(CallbackData { app_handle });
-
-    let cb_data_raw = Box::into_raw(cb_data) as *mut c_void;
+    let cb_data_raw = {
+        let cb_data = Box::new(CallbackData {
+            app_handle,
+            connection: connection.into(),
+        });
+        Box::into_raw(cb_data) as *mut c_void
+    };
 
     let sub = unsafe {
         lpNewSubscription(
@@ -118,34 +153,44 @@ fn subscribe(quantity: &str, app_state: State<'_, AppState>, app_handle: AppHand
         )
     };
 
-    subscriptions.insert(quantity.into(), RawPointer(sub));
-
-    let mut callback_data = app_state.callback_data.lock().unwrap();
-    callback_data.insert(quantity.into(), RawPointer(cb_data_raw));
+    subscriptions.insert(
+        quantity.into(),
+        SubscriptionData {
+            raw_sub: RawPointer(sub),
+            raw_cb_data: RawPointer(cb_data_raw),
+        },
+    );
 }
 
 #[tauri::command]
-fn unsubscribe(quantity: &str, app_state: State<'_, AppState>) {
-    let mut subscriptions = app_state.subscriptions.lock().unwrap();
+fn unsubscribe(connection: &str, quantity: &str, app_state: State<'_, AppState>) {
+    let mut connections = app_state.connections.lock().unwrap();
+    let subscriptions = &mut connections.get_mut(connection).unwrap().subscriptions;
 
     if !subscriptions.contains_key(quantity) {
-        println!("not subscribed to '{}'", quantity);
+        println!(
+            "not subscribed to '{}' for connection '{}'",
+            quantity, connection
+        );
         return;
     }
 
-    let mut callback_data = app_state.callback_data.lock().unwrap();
+    let sub_data = &subscriptions[quantity];
 
-    unsafe { lpDestroySubscription(subscriptions[quantity].0) };
-    unsafe { Box::<CallbackData>::from_raw(callback_data[quantity].0 as *mut _) };
+    unsafe { lpDestroySubscription(sub_data.raw_sub.0) };
+    unsafe { Box::<CallbackData>::from_raw(sub_data.raw_cb_data.0 as *mut _) };
 
     subscriptions.remove(quantity);
-    callback_data.remove(quantity);
 }
 
 #[tauri::command]
-fn known_quantities(app_state: State<'_, AppState>) -> Vec<KnownQuantityPayload> {
-    let known_quantities = app_state.quantities.lock().unwrap();
-    let subscriptions = app_state.subscriptions.lock().unwrap();
+fn known_quantities(connection: &str, app_state: State<'_, AppState>) -> Vec<KnownQuantityPayload> {
+    let connections = app_state.connections.lock().unwrap();
+
+    let matching_connection = &connections[connection];
+
+    let known_quantities = &matching_connection.quantities;
+    let subscriptions = &matching_connection.subscriptions;
 
     Vec::from_iter(known_quantities.iter().map(|s| KnownQuantityPayload {
         quantity: s.clone(),
@@ -155,18 +200,28 @@ fn known_quantities(app_state: State<'_, AppState>) -> Vec<KnownQuantityPayload>
 
 #[tauri::command]
 fn connect(connection: &str, app_state: State<'_, AppState>, app_handle: AppHandle<Wry>) {
-    let mut connection_target = app_state.connection.lock().unwrap();
-    *connection_target = connection.to_string();
+    let mut connections = app_state.connections.lock().unwrap();
+
+    if connections.contains_key(connection) {
+        println!("already connected to '{}'", connection);
+        return;
+    }
+
+    let mut new_connection = Connection {
+        subscriptions: HashMap::new(),
+        quantities: HashSet::new(),
+    };
 
     let connection_c_str = CString::new(connection).expect("could not create Rust string");
-
     let quantity_c_str = CString::new("").expect("could not create Rust string");
 
-    let cb_data = Box::new(CallbackData { app_handle });
-
+    let cb_data = Box::new(CallbackData {
+        app_handle,
+        connection: connection.into(),
+    });
     let cb_data_raw = Box::into_raw(cb_data) as *mut c_void;
 
-    unsafe {
+    let sub = unsafe {
         lpNewSubscription(
             connection_c_str.as_ptr(),
             quantity_c_str.as_ptr(),
@@ -174,28 +229,28 @@ fn connect(connection: &str, app_state: State<'_, AppState>, app_handle: AppHand
             cb_all,
         )
     };
-}
 
-#[tauri::command]
-fn current_connection(app_state: State<'_, AppState>) -> String {
-    let connection = app_state.connection.lock().unwrap();
-    return connection.clone();
+    new_connection.subscriptions.insert(
+        "".into(),
+        SubscriptionData {
+            raw_sub: RawPointer(sub),
+            raw_cb_data: RawPointer(cb_data_raw),
+        },
+    );
+
+    connections.insert(connection.into(), new_connection);
 }
 
 fn main() {
     tauri::Builder::default()
         .manage(AppState {
-            subscriptions: Mutex::new(HashMap::new()),
-            callback_data: Mutex::new(HashMap::new()),
-            quantities: Mutex::new(HashSet::new()),
-            connection: Mutex::new(String::new()),
+            connections: Mutex::new(HashMap::new()),
         })
         .invoke_handler(tauri::generate_handler![
             subscribe,
             unsubscribe,
             known_quantities,
             connect,
-            current_connection
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
