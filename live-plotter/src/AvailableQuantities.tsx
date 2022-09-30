@@ -1,11 +1,11 @@
 import {listen} from "@tauri-apps/api/event";
-import {availableQuantities, availableQuantitiesStore, storeAvailableQuantity} from "./availableQuantitiesStore";
 import {useEffect, useState} from "react";
 import {Switch, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
 import {invoke} from "@tauri-apps/api/tauri";
 
 const listenToNewQuantities = async () => {
     await listen("newQuantity", (event) => {
+        console.log("new quantity", event.payload);
         storeAvailableQuantity(event.payload as string);
     });
 };
