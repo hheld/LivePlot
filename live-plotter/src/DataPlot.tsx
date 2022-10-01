@@ -1,5 +1,5 @@
 import {listen, Event} from "@tauri-apps/api/event";
-import {Box, Container} from "@chakra-ui/react";
+import {Box, Button, Container, VStack} from "@chakra-ui/react";
 import {Scatter} from "react-chartjs-2";
 import {Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Legend, Tooltip} from "chart.js";
 import {useCallback, useEffect, useState} from "react";
@@ -90,13 +90,21 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
         };
     }, [newDataCallback]);
 
+    const clearPlotData = () => {
+        setPoints({datasets: []});
+    };
+
     return (
-        <Box shadow="md" borderWidth="1px" h="300px">
-            <Container w="100%" centerContent maxW="100%" h="100%">
-                <Scatter data={points}
-                         options={{maintainAspectRatio: false, responsive: true, animation: false}}></Scatter>
-            </Container>
-        </Box>
+        <VStack spacing="10">
+            <Box shadow="md" borderWidth="1px" h="300px" w="100%">
+                <Container w="100%" centerContent maxW="100%" h="100%">
+                    <Scatter data={points}
+                             options={{maintainAspectRatio: false, responsive: true, animation: false}}></Scatter>
+                </Container>
+            </Box>
+
+            <Button onClick={clearPlotData}>Clear plot data</Button>
+        </VStack>
     );
 };
 

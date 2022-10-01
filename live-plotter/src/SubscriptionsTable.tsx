@@ -1,6 +1,6 @@
 import {listen, Event} from "@tauri-apps/api/event";
-import {useCallback, useEffect, useState} from "react";
-import {Switch, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
+import {useCallback, useEffect} from "react";
+import {Box, Switch, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
 import {invoke} from "@tauri-apps/api/tauri";
 import {State, useStore} from "./store";
 
@@ -80,22 +80,24 @@ const SubscriptionsTable = ({connectionName}: SubscriptionsTableProps) => {
     ));
 
     return (
-        <TableContainer>
-            <Table variant="striped">
-                <TableCaption>
-                    Available quantities
-                </TableCaption>
-                <Thead>
-                    <Tr>
-                        <Th>Quantity</Th>
-                        <Th>Subscribe</Th>
-                    </Tr>
-                </Thead>
-                <Tbody>
-                    {quantitiesTable}
-                </Tbody>
-            </Table>
-        </TableContainer>
+        <Box shadow="md" borderWidth="1px">
+            <TableContainer>
+                <Table variant="striped">
+                    <TableCaption>
+                        Available quantities
+                    </TableCaption>
+                    <Thead>
+                        <Tr>
+                            <Th>Quantity</Th>
+                            <Th>Subscribe</Th>
+                        </Tr>
+                    </Thead>
+                    <Tbody>
+                        {quantitiesTable}
+                    </Tbody>
+                </Table>
+            </TableContainer>
+        </Box>
     );
 }
 
