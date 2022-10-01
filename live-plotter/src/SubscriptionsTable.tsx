@@ -79,8 +79,6 @@ const SubscriptionsTable = ({connectionName}: SubscriptionsTableProps) => {
         </Tr>
     ));
 
-    console.log("connection data for", connectionName, connectionData);
-
     return (
         <TableContainer>
             <Table variant="striped">

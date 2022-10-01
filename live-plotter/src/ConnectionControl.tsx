@@ -1,4 +1,6 @@
 import SubscriptionsTable from "./SubscriptionsTable";
+import {VStack, Box} from "@chakra-ui/react";
+import DataPlot from "./DataPlot";
 
 type ConnectionControlProps = {
     connectionName: string
@@ -6,9 +8,12 @@ type ConnectionControlProps = {
 
 const ConnectionControl = ({connectionName}: ConnectionControlProps) => {
     return (
-        <div>
-            <SubscriptionsTable connectionName={connectionName}/>
-        </div>
+        <Box>
+            <VStack align="stretch" spacing="10">
+                <SubscriptionsTable connectionName={connectionName}/>
+                <DataPlot connectionName={connectionName}/>
+            </VStack>
+        </Box>
     );
 };
 
