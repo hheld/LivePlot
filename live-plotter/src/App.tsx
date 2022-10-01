@@ -1,6 +1,6 @@
 import {
     Box,
-    Button,
+    Button, CloseButton,
     Container,
     FormControl,
     FormLabel,
@@ -11,16 +11,18 @@ import {
     Tabs,
     VStack
 } from "@chakra-ui/react";
-import {ChangeEvent, useState} from "react";
+import React, {ChangeEvent, useState} from "react";
 import {invoke} from "@tauri-apps/api/tauri";
 import {State, useStore} from "./store";
 import ConnectionControl from "./ConnectionControl";
 
 const addConnectionSelector = (state: State) => state.addConnection;
+const removeConnectionSelector = (state: State) => state.removeConnection;
 const connectionsSelector = (state: State) => state.connections;
 
 const App = () => {
     const storeConnection = useStore(addConnectionSelector);
+    const removeConnection = useStore(removeConnectionSelector);
     const storedConnections = useStore(connectionsSelector);
 
     const [connection, setConnection] = useState("");
@@ -39,8 +41,19 @@ const App = () => {
         }
     };
 
+    const disconnect = async (connectionName: string) => {
+        try {
+            await invoke("disconnect", {connection: connectionName});
+            removeConnection(connectionName);
+        } catch (err) {
+            console.error(`could not disconnect from ${connectionName}`);
+        }
+    };
+
     const tabs = storedConnections.map((c, i) => (
-        <Tab key={i}>{c.name}</Tab>
+        <Tab key={i}>
+            {c.name} <CloseButton size="sm" onClick={() => disconnect(c.name)}/>
+        </Tab>
     ));
 
     const tabContents = storedConnections.map((c, i) => (

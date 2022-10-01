@@ -241,6 +241,26 @@ fn connect(connection: &str, app_state: State<'_, AppState>, app_handle: AppHand
     connections.insert(connection.into(), new_connection);
 }
 
+#[tauri::command]
+fn disconnect(connection: &str, app_state: State<'_, AppState>) {
+    let mut connections = app_state.connections.lock().unwrap();
+
+    if !connections.contains_key(connection) {
+        eprintln!("not connected to '{}', cannot disconnect", connection);
+        return;
+    }
+
+    if let Some(mut connection_to_be_removed) = connections.remove(connection) {
+        // unsubscribe from everything
+        for (_, sub_data) in &connection_to_be_removed.subscriptions {
+            unsafe { lpDestroySubscription(sub_data.raw_sub.0) };
+            unsafe { Box::<CallbackData>::from_raw(sub_data.raw_cb_data.0 as *mut _) };
+        }
+
+        connection_to_be_removed.subscriptions.clear();
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(AppState {
@@ -251,6 +271,7 @@ fn main() {
             unsubscribe,
             known_quantities,
             connect,
+            disconnect
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -11,6 +11,7 @@ export interface State {
     connections: ConnectionData[]
 
     addConnection: (connectionName: string) => void
+    removeConnection: (connectionName: string) => void
     addQuantityToConnection: (connectionName: string, quantity: string, subscribed: boolean) => void
     addSubscriptionToConnection: (connectionName: string, quantity: string) => void
     removeSubscriptionFromConnection: (connectionName: string, quantity: string) => void
@@ -25,6 +26,10 @@ export const useStore = create<State>()((set) => ({
             quantities: [],
             subscriptions: []
         } as ConnectionData);
+    })),
+
+    removeConnection: (connectionName: string) => set(produce((state: State) => {
+        state.connections = state.connections.filter(c => c.name !== connectionName);
     })),
 
     addQuantityToConnection: (connectionName: string, quantity: string, subscribed: boolean) => set(produce((state: State) => {
