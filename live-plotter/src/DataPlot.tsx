@@ -1,10 +1,11 @@
 import {listen, Event} from "@tauri-apps/api/event";
-import {Box, Button, Container, VStack} from "@chakra-ui/react";
+import {Box, Button, Container, HStack, VStack} from "@chakra-ui/react";
 import {Scatter} from "react-chartjs-2";
 import {Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Legend, Tooltip} from "chart.js";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
+import Zoom from "chartjs-plugin-zoom";
 
-ChartJS.register(LineElement, PointElement, LinearScale, Title, Legend, Tooltip);
+ChartJS.register(LineElement, PointElement, LinearScale, Title, Legend, Tooltip, Zoom);
 
 interface DataItem {
     data: {
@@ -34,6 +35,7 @@ type DataPlotProps = {
 
 const DataPlot = ({connectionName}: DataPlotProps) => {
     const [points, setPoints] = useState<Data>({datasets: []});
+    const chartRef = useRef(null);
 
     const newDataCallback = useCallback((event: Event<unknown>) => {
         const pl = event.payload as { x: number, y: number, quantity: string, connection: string };
@@ -94,16 +96,43 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
         setPoints({datasets: []});
     };
 
+    const resetZoom = () => {
+        // @ts-ignore
+        chartRef.current?.resetZoom();
+    }
+
     return (
         <VStack spacing="10">
             <Box shadow="md" borderWidth="1px" h="300px" w="100%">
                 <Container w="100%" centerContent maxW="100%" h="100%">
                     <Scatter data={points}
-                             options={{maintainAspectRatio: false, responsive: true, animation: false}}></Scatter>
+                             ref={chartRef}
+                             options={{
+                                 maintainAspectRatio: false,
+                                 responsive: true,
+                                 animation: false,
+                                 plugins: {
+                                     zoom: {
+                                         zoom: {
+                                             mode: "xy",
+                                             wheel: {
+                                                 enabled: true
+                                             }
+                                         },
+                                         pan: {
+                                             enabled: true,
+                                             mode: "xy",
+                                         },
+                                     }
+                                 }
+                             }}></Scatter>
                 </Container>
             </Box>
 
-            <Button onClick={clearPlotData}>Clear plot data</Button>
+            <HStack>
+                <Button onClick={clearPlotData}>Clear plot data</Button>
+                <Button onClick={resetZoom}>Reset zoom</Button>
+            </HStack>
         </VStack>
     );
 };
