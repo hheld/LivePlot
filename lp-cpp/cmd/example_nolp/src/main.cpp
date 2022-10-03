@@ -2,27 +2,24 @@
 #include <cmath>
 #include <condition_variable>
 #include <iostream>
-#include <liveplot.h>
 #include <thread>
 
 #include <logger.h>
 
 int main(int argc, const char *argv[])
 {
-    if (argc != 4)
+    if (argc != 3)
     {
-        fmt::print(stderr, "Usage: {} <connection> <base time step in seconds> <max. num time iterations>\n", argv[0]);
+        fmt::print(stderr, "Usage: {} <base time step in seconds> <max. num time iterations>\n", argv[0]);
         return 1;
     }
 
     auto logger = logging::logger("example");
 
-    lp::LivePlot lp(argv[1]);
-
     std::atomic<bool> quit{ false };
     double            t                = 0;
-    const auto        tStep            = std::stod(argv[2]);
-    const auto        maxNumIterations = std::stoi(argv[3]);
+    const auto        tStep            = std::stod(argv[1]);
+    const auto        maxNumIterations = std::stoi(argv[2]);
 
     std::mutex              mtx;
     std::condition_variable cv_sin;
@@ -66,36 +63,33 @@ int main(int argc, const char *argv[])
         cv_func.notify_all();
     });
 
-    auto th1 = std::thread([&lp, &t, &quit, logger, &mtx, &cv_sin] {
+    auto th1 = std::thread([&t, &quit, logger, &mtx, &cv_sin] {
         while (!quit)
         {
             std::unique_lock lock(mtx);
             cv_sin.wait(lock);
 
-            logger->info("sending sin({})", t);
-            lp.plot("sin", t, sin(t));
+            logger->info("computing sin({})", sin(t));
         }
     });
 
-    auto th2 = std::thread([&lp, &t, &quit, logger, &mtx, &cv_cos] {
+    auto th2 = std::thread([&t, &quit, logger, &mtx, &cv_cos] {
         while (!quit)
         {
             std::unique_lock lock(mtx);
             cv_cos.wait(lock);
 
-            logger->info("sending cos({})", t);
-            lp.plot("cos", t, cos(t));
+            logger->info("computing cos({})", cos(t));
         }
     });
 
-    auto th3 = std::thread([&lp, &t, &quit, logger, &mtx, &cv_func] {
+    auto th3 = std::thread([&t, &quit, logger, &mtx, &cv_func] {
         while (!quit)
         {
             std::unique_lock lock(mtx);
             cv_func.wait(lock);
 
-            logger->info("sending func({})", t);
-            lp.plot("func", t, sin(0.01 * t) * exp(sin(t) + tanh(cos(t))));
+            logger->info("computing func({})", sin(0.01 * t) * exp(sin(t) + tanh(cos(t))));
         }
     });
 
