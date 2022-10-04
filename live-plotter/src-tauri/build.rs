@@ -5,7 +5,6 @@ use std::path::Path;
 
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
-    let home_dir = env::var("HOME").unwrap();
     let target_os = env::var("CARGO_CFG_TARGET_OS");
 
     println!("cargo:rerun-if-changed=../../lp-cpp/conanfile.txt");
@@ -47,6 +46,8 @@ fn main() {
 
     match target_os.as_ref().map(|x| &**x) {
         Ok("linux") => {
+            let home_dir = env::var("HOME").unwrap();
+
             std::fs::copy(
                 format!("{}/lib/libliveplot-sub.so", &out_dir),
                 format!("{}/.local/lib/libliveplot-sub.so", &home_dir),
@@ -60,7 +61,14 @@ fn main() {
             )
             .expect("could not copy libliveplot-sub.so to build folder");
         }
-        Ok("windows") => {}
+        Ok("windows") => {
+            // this makes bundling as an MSI installer easier
+            std::fs::copy(
+                format!("{}/lib/liveplot-sub.dll", &out_dir),
+                format!("{}/../../../liveplot-sub.dll", &out_dir),
+            )
+            .expect("could not copy libliveplot-sub.so to build folder");
+        }
         tos => panic!("unsupported target os {:?}!", tos),
     };
 
