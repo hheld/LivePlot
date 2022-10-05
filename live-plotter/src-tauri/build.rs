@@ -34,7 +34,6 @@ fn main() {
             "CMAKE_TOOLCHAIN_FILE",
             &format!("{}/build/generators/conan_toolchain.cmake", &out_dir),
         )
-        .generator("Ninja")
         .build();
 
     println!("cargo:rerun-if-changed=../../lp-cpp/lib/liveplot-sub");
@@ -67,7 +66,7 @@ fn main() {
                 format!("{}/bin/liveplot-sub.dll", &out_dir),
                 format!("{}/../../../liveplot-sub.dll", &out_dir),
             )
-            .expect("could not copy libliveplot-sub.so to build folder");
+            .expect("could not copy liveplot-sub.dll to build folder");
         }
         tos => panic!("unsupported target os {:?}!", tos),
     };
