@@ -64,7 +64,7 @@ fn main() {
         Ok("windows") => {
             // this makes bundling as an MSI installer easier
             std::fs::copy(
-                format!("{}/lib/liveplot-sub.dll", &out_dir),
+                format!("{}/bin/liveplot-sub.dll", &out_dir),
                 format!("{}/../../../liveplot-sub.dll", &out_dir),
             )
             .expect("could not copy libliveplot-sub.so to build folder");
