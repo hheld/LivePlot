@@ -1,9 +1,0 @@
-{
-  "tauri": {
-    "bundle": {
-      "resources": [
-        "./target/release/liveplot-sub.dll"
-      ]
-    }
-  }
-}

@@ -37,15 +37,14 @@ fn main() {
         .build();
 
     println!("cargo:rerun-if-changed=../../lp-cpp/lib/liveplot-sub");
+    println!(
+        "cargo:rustc-link-search=native={}/lib",
+        lp_sub_lib.display()
+    );
     println!("cargo:rustc-link-lib=dylib=liveplot-sub");
 
     match target_os.as_ref().map(|x| &**x) {
         Ok("linux") => {
-            println!(
-                "cargo:rustc-link-search=native={}/lib",
-                lp_sub_lib.display()
-            );
-
             let home_dir = env::var("HOME").unwrap();
 
             std::fs::copy(
@@ -62,11 +61,6 @@ fn main() {
             .expect("could not copy libliveplot-sub.so to build folder");
         }
         Ok("windows") => {
-            println!(
-                "cargo:rustc-link-search=native={}/bin",
-                lp_sub_lib.display()
-            );
-
             // this makes bundling as an MSI installer easier
             std::fs::copy(
                 format!("{}/bin/liveplot-sub.dll", &out_dir),
