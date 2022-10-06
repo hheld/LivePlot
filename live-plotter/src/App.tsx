@@ -64,7 +64,7 @@ const App = () => {
 
     return (
         <Box>
-            <VStack align="stretch" spacing="10">
+            <VStack align="stretch" spacing="10" marginTop="4">
                 <Container shadow="md" borderWidth="1px" w="30%">
                     <Stack align="baseline">
                         <FormControl isRequired>
