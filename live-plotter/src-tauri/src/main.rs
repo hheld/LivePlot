@@ -199,12 +199,24 @@ fn known_quantities(connection: &str, app_state: State<'_, AppState>) -> Vec<Kno
 }
 
 #[tauri::command]
-fn connect(connection: &str, app_state: State<'_, AppState>, app_handle: AppHandle<Wry>) {
+fn connect(
+    connection: &str,
+    app_state: State<'_, AppState>,
+    app_handle: AppHandle<Wry>,
+) -> Result<(), String> {
+    if connection.is_empty() {
+        eprintln!(
+            "'{}' is not a valid connection string, cannot connect to it",
+            connection
+        );
+        return Err("invalid connection string".into());
+    }
+
     let mut connections = app_state.connections.lock().unwrap();
 
     if connections.contains_key(connection) {
         println!("already connected to '{}'", connection);
-        return;
+        return Ok(());
     }
 
     let mut new_connection = Connection {
@@ -239,6 +251,8 @@ fn connect(connection: &str, app_state: State<'_, AppState>, app_handle: AppHand
     );
 
     connections.insert(connection.into(), new_connection);
+
+    Ok(())
 }
 
 #[tauri::command]
