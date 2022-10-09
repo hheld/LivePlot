@@ -13,6 +13,7 @@ import {
 } from "@chakra-ui/react";
 import React, {ChangeEvent, useState} from "react";
 import {invoke} from "@tauri-apps/api/tauri";
+import {confirm} from '@tauri-apps/api/dialog';
 import {State, useStore} from "./store";
 import ConnectionControl from "./ConnectionControl";
 
@@ -42,6 +43,10 @@ const App = () => {
     };
 
     const disconnect = async (connectionName: string) => {
+        const confirmed = await confirm(`Are you sure to close the connection ${connectionName}?`, "Close connection");
+
+        if (!confirmed) return;
+
         try {
             await invoke("disconnect", {connection: connectionName});
             removeConnection(connectionName);
