@@ -61,7 +61,7 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 700,
+        "height": 800,
         "resizable": true,
         "title": "LivePlot",
         "width": 800

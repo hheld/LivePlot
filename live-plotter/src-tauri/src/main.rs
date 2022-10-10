@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::ffi::{c_void, CStr, CString};
 use std::os::raw::c_char;
@@ -198,13 +199,17 @@ fn known_quantities(connection: &str, app_state: State<'_, AppState>) -> Vec<Kno
     }))
 }
 
+const RE_VALID_ZMQ_CONNECTION: &'static str = r"^(?:tcp://(.+):\d+|ipc://(.+))$";
+
 #[tauri::command]
 fn connect(
     connection: &str,
     app_state: State<'_, AppState>,
     app_handle: AppHandle<Wry>,
 ) -> Result<(), String> {
-    if connection.is_empty() {
+    let re = Regex::new(RE_VALID_ZMQ_CONNECTION).unwrap();
+
+    if !re.is_match(connection) {
         eprintln!(
             "'{}' is not a valid connection string, cannot connect to it",
             connection

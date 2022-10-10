@@ -34,7 +34,17 @@ void LivePlotSubscription::startListening() const
 {
     zmq::socket_t sock(*ctx_, zmq::socket_type::sub);
 
-    sock.connect(connection_);
+    try
+    {
+        sock.connect(connection_);
+    }
+    catch (...)
+    {
+        log_->error("could not connect to {}", connection_);
+        sock.close();
+        return;
+    }
+
     sock.set(zmq::sockopt::subscribe, quantity_);
 
     while (!quit_)
