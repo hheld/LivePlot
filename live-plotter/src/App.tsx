@@ -33,6 +33,11 @@ const App = () => {
         setConnection(event.target.value);
     };
 
+    const connectionIsValid = () => {
+        const re_validConnection = /^(?:tcp:\/\/(.+):\d+|ipc:\/\/(.+))$/;
+        return re_validConnection.test(connection);
+    };
+
     const connect = async () => {
         try {
             await invoke("connect", {connection});
@@ -78,9 +83,9 @@ const App = () => {
                     <Stack align="baseline">
                         <FormControl isRequired>
                             <FormLabel>Connection</FormLabel>
-                            <Input value={connection} onChange={handleConnection}/>
+                            <Input value={connection} onChange={handleConnection} isInvalid={!connectionIsValid()}/>
                         </FormControl>
-                        <Button onClick={connect}>Connect</Button>
+                        <Button onClick={connect} disabled={!connectionIsValid()}>Connect</Button>
                     </Stack>
                 </Container>
 
