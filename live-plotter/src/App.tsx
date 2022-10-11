@@ -83,7 +83,11 @@ const App = () => {
                     <Stack align="baseline">
                         <FormControl isRequired>
                             <FormLabel>Connection</FormLabel>
-                            <Input value={connection} onChange={handleConnection} isInvalid={!connectionIsValid()}/>
+                            <Input value={connection} onChange={handleConnection} isInvalid={!connectionIsValid()}
+                                   onKeyDown={(e) => {
+                                       const ct = e.currentTarget;
+                                       if (connectionIsValid() && e.key === "Enter") connect().then(() => ct.blur());
+                                   }}/>
                         </FormControl>
                         <Button onClick={connect} disabled={!connectionIsValid()}>Connect</Button>
                     </Stack>
