@@ -1,6 +1,6 @@
 import {
     Box,
-    Button,
+    Button, Center,
     Container,
     FormControl,
     FormLabel, HStack,
@@ -17,15 +17,19 @@ import {confirm} from '@tauri-apps/api/dialog';
 import {State, useStore} from "./store";
 import ConnectionControl from "./ConnectionControl";
 import {CloseIcon} from "@chakra-ui/icons";
+import {ConnectionHistoryState, useConnectionHistoryStore} from "./connectionHistoryStore";
+import ConnectionHistory from "./ConnectionHistory";
 
 const addConnectionSelector = (state: State) => state.addConnection;
 const removeConnectionSelector = (state: State) => state.removeConnection;
 const connectionsSelector = (state: State) => state.connections;
+const addConnectionToHistorySelector = (state: ConnectionHistoryState) => state.addConnectionToHistory;
 
 const App = () => {
     const storeConnection = useStore(addConnectionSelector);
     const removeConnection = useStore(removeConnectionSelector);
     const storedConnections = useStore(connectionsSelector);
+    const addConnectionToHistory = useConnectionHistoryStore(addConnectionToHistorySelector);
 
     const [connection, setConnection] = useState("");
 
@@ -42,6 +46,7 @@ const App = () => {
         try {
             await invoke("connect", {connection});
             storeConnection(connection);
+            addConnectionToHistory(connection);
             setConnection("");
         } catch (err) {
             console.error(`could not connect to ${connection}`);
@@ -79,19 +84,32 @@ const App = () => {
     return (
         <Box>
             <VStack align="stretch" spacing="10" marginTop="4">
-                <Container shadow="md" borderWidth="1px" w="30%">
-                    <Stack align="baseline">
-                        <FormControl isRequired>
-                            <FormLabel>Connection</FormLabel>
-                            <Input value={connection} onChange={handleConnection} isInvalid={!connectionIsValid()}
-                                   onKeyDown={(e) => {
-                                       const ct = e.currentTarget;
-                                       if (connectionIsValid() && e.key === "Enter") connect().then(() => ct.blur());
-                                   }}/>
-                        </FormControl>
-                        <Button onClick={connect} disabled={!connectionIsValid()}>Connect</Button>
-                    </Stack>
-                </Container>
+                <Center>
+                    <HStack align="stretch" marginRight="4" marginLeft="4" spacing="10">
+                        <Box>
+                            <Container shadow="md" borderWidth="1px">
+                                <Stack align="baseline">
+                                    <FormControl isRequired>
+                                        <FormLabel>Connection</FormLabel>
+                                        <Input value={connection} onChange={handleConnection}
+                                               isInvalid={!connectionIsValid()}
+                                               onKeyDown={(e) => {
+                                                   const ct = e.currentTarget;
+                                                   if (connectionIsValid() && e.key === "Enter") connect().then(() => ct.blur());
+                                               }}/>
+                                    </FormControl>
+                                    <Button onClick={connect} disabled={!connectionIsValid()}>Connect</Button>
+                                </Stack>
+                            </Container>
+                        </Box>
+
+                        <Box>
+                            <Container shadow="md" borderWidth="1px">
+                                <ConnectionHistory/>
+                            </Container>
+                        </Box>
+                    </HStack>
+                </Center>
 
                 <Tabs variant="enclosed-colored">
                     <TabList>
