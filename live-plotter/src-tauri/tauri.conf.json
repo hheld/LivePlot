@@ -13,7 +13,8 @@
     "allowlist": {
       "all": false,
       "dialog": {
-        "confirm": true
+        "confirm": true,
+        "save": true
       }
     },
     "bundle": {

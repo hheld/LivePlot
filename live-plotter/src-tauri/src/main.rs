@@ -6,6 +6,8 @@
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::ffi::{c_void, CStr, CString};
+use std::fs::File;
+use std::io::prelude::*;
 use std::os::raw::c_char;
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager, State, Wry};
@@ -280,6 +282,24 @@ fn disconnect(connection: &str, app_state: State<'_, AppState>) {
     }
 }
 
+#[tauri::command]
+fn write_plot_image(file_name: &str, base64_encoded_image: &str) -> Result<(), String> {
+    if let Ok(b) = base64::decode(base64_encoded_image) {
+        if let Ok(mut file) = File::create(file_name) {
+            match file.write_all(&b) {
+                Err(err) => return Err(err.to_string()),
+                _ => (),
+            }
+        } else {
+            return Err("could not write file".to_string());
+        }
+    } else {
+        return Err("could not decode the image".to_string());
+    }
+
+    Ok(())
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(AppState {
@@ -290,7 +310,8 @@ fn main() {
             unsubscribe,
             known_quantities,
             connect,
-            disconnect
+            disconnect,
+            write_plot_image
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

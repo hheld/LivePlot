@@ -1,9 +1,11 @@
 import {listen, Event} from "@tauri-apps/api/event";
 import {Box, Button, Container, HStack, VStack} from "@chakra-ui/react";
 import {Scatter} from "react-chartjs-2";
-import {Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Legend, Tooltip} from "chart.js";
+import {Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Legend, Tooltip, Chart} from "chart.js";
 import {useCallback, useEffect, useRef, useState} from "react";
 import Zoom from "chartjs-plugin-zoom";
+import {save} from '@tauri-apps/api/dialog';
+import {invoke} from "@tauri-apps/api/tauri";
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Legend, Tooltip, Zoom);
 
@@ -97,9 +99,22 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
     };
 
     const resetZoom = () => {
-        // @ts-ignore
-        chartRef.current?.resetZoom();
-    }
+        (chartRef.current as Chart | null)?.resetZoom();
+    };
+
+    const askForSaveImgFileName = async () => {
+        const filePath = await save({
+            filters: [{
+                name: "Image",
+                extensions: ["png"]
+            }]
+        });
+
+        await invoke("write_plot_image", {
+            fileName: filePath,
+            base64EncodedImage: (chartRef.current as Chart | null)?.toBase64Image().slice(22)
+        });
+    };
 
     return (
         <VStack spacing="10">
@@ -132,6 +147,7 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
             <HStack>
                 <Button onClick={clearPlotData}>Clear plot data</Button>
                 <Button onClick={resetZoom}>Reset zoom</Button>
+                <Button onClick={askForSaveImgFileName}>Save image</Button>
             </HStack>
         </VStack>
     );

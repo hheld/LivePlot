@@ -23,8 +23,9 @@ conan = "0.2.0"
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.1.1", features = ["dialog-confirm"] }
+tauri = { version = "1.1.1", features = ["dialog-confirm", "dialog-save"] }
 regex = "1.6.0"
+base64 = "0.13.0"
 
 [features]
 # by default Tauri runs in production mode
