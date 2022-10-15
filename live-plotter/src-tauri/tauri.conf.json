@@ -14,7 +14,8 @@
       "all": false,
       "dialog": {
         "confirm": true,
-        "save": true
+        "save": true,
+        "message": true
       }
     },
     "bundle": {

@@ -4,7 +4,7 @@ import {Scatter} from "react-chartjs-2";
 import {Chart as ChartJS, LineElement, PointElement, LinearScale, Title, Legend, Tooltip, Chart} from "chart.js";
 import {useCallback, useEffect, useRef, useState} from "react";
 import Zoom from "chartjs-plugin-zoom";
-import {save} from '@tauri-apps/api/dialog';
+import {save, message} from '@tauri-apps/api/dialog';
 import {invoke} from "@tauri-apps/api/tauri";
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Legend, Tooltip, Zoom);
@@ -110,10 +110,14 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
             }]
         });
 
-        await invoke("write_plot_image", {
-            fileName: filePath,
-            base64EncodedImage: (chartRef.current as Chart | null)?.toBase64Image().slice(22)
-        });
+        try {
+            await invoke("write_plot_image", {
+                fileName: filePath,
+                base64EncodedImage: (chartRef.current as Chart | null)?.toBase64Image().slice(22)
+            });
+        } catch (err) {
+            await message(err as string, {title: "Error trying to write the image", type: "error"});
+        }
     };
 
     return (
