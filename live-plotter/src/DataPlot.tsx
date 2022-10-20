@@ -120,6 +120,30 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
         }
     };
 
+    const askForSaveCsvFileName = async () => {
+        const filePath = await save({
+            filters: [{
+                name: "CSV",
+                extensions: ["csv"]
+            }]
+        });
+
+        const data = points.datasets.map(p => ({
+            label: p.label,
+            x: p.data.map(d => d.x),
+            y: p.data.map(d => d.y),
+        }));
+
+        try {
+            await invoke("write_data_csv", {
+                fileName: filePath,
+                data: data
+            });
+        } catch (err) {
+            await message(err as string, {title: "Error trying to write data to a CSV file", type: "error"});
+        }
+    };
+
     return (
         <VStack spacing="10">
             <Box shadow="md" borderWidth="1px" h="300px" w="100%">
@@ -152,6 +176,7 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
                 <Button onClick={clearPlotData}>Clear plot data</Button>
                 <Button onClick={resetZoom}>Reset zoom</Button>
                 <Button onClick={askForSaveImgFileName}>Save image</Button>
+                <Button onClick={askForSaveCsvFileName}>Save CSV</Button>
             </HStack>
         </VStack>
     );

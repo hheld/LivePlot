@@ -3,6 +3,8 @@
     windows_subsystem = "windows"
 )]
 
+use polars::functions::diag_concat_df;
+use polars::prelude::*;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 use std::ffi::{c_void, CStr, CString};
@@ -300,6 +302,47 @@ fn write_plot_image(file_name: &str, base64_encoded_image: &str) -> Result<(), S
     Ok(())
 }
 
+#[derive(serde::Deserialize)]
+struct CsvData {
+    label: String,
+    x: Vec<f64>,
+    y: Vec<f64>,
+}
+
+#[tauri::command]
+fn write_data_csv(file_name: &str, data: Vec<CsvData>) -> Result<(), String> {
+    let mut file = match File::create(file_name) {
+        Ok(file) => file,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    let all_dfs = data
+        .iter()
+        .map(|d| {
+            polars::df![
+                "x" => &d.x,
+                &d.label => &d.y
+            ]
+            .unwrap()
+        })
+        .collect::<Vec<polars::frame::DataFrame>>();
+
+    let mut merged_frames = match diag_concat_df(&all_dfs).unwrap().sort(["x"], false) {
+        Ok(merged_frames) => merged_frames,
+        Err(err) => return Err(err.to_string()),
+    };
+
+    if let Err(err) = CsvWriter::new(&mut file)
+        .has_header(true)
+        .with_delimiter(b'\t')
+        .finish(&mut merged_frames)
+    {
+        return Err(err.to_string());
+    }
+
+    Ok(())
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(AppState {
@@ -311,7 +354,8 @@ fn main() {
             known_quantities,
             connect,
             disconnect,
-            write_plot_image
+            write_plot_image,
+            write_data_csv,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

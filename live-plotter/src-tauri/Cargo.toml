@@ -26,6 +26,7 @@ serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1.1.1", features = ["dialog-confirm", "dialog-message", "dialog-save"] }
 regex = "1.6.0"
 base64 = "0.13.0"
+polars = { version = "0.24.3", features= ["diagonal_concat"] }
 
 [features]
 # by default Tauri runs in production mode
