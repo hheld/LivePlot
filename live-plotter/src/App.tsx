@@ -17,19 +17,19 @@ import {confirm} from '@tauri-apps/api/dialog';
 import {State, useStore} from "./store";
 import ConnectionControl from "./ConnectionControl";
 import {CloseIcon} from "@chakra-ui/icons";
-import {ConnectionHistoryState, useConnectionHistoryStore} from "./connectionHistoryStore";
+import {HistoryState, useHistoryStore} from "./historyStore";
 import ConnectionHistory from "./ConnectionHistory";
 
 const addConnectionSelector = (state: State) => state.addConnection;
 const removeConnectionSelector = (state: State) => state.removeConnection;
 const connectionsSelector = (state: State) => state.connections;
-const addConnectionToHistorySelector = (state: ConnectionHistoryState) => state.addConnectionToHistory;
+const addConnectionToHistorySelector = (state: HistoryState) => state.addConnectionToHistory;
 
 const App = () => {
     const storeConnection = useStore(addConnectionSelector);
     const removeConnection = useStore(removeConnectionSelector);
     const storedConnections = useStore(connectionsSelector);
-    const addConnectionToHistory = useConnectionHistoryStore(addConnectionToHistorySelector);
+    const addConnectionToHistory = useHistoryStore(addConnectionToHistorySelector);
 
     const [connection, setConnection] = useState("");
 

@@ -6,6 +6,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import Zoom from "chartjs-plugin-zoom";
 import {save, message} from '@tauri-apps/api/dialog';
 import {invoke} from "@tauri-apps/api/tauri";
+import {HistoryState, useHistoryStore} from "./historyStore";
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Legend, Tooltip, Zoom);
 
@@ -35,9 +36,21 @@ type DataPlotProps = {
     connectionName: string
 };
 
+const lastImgFileHistorySelector = (state: HistoryState) => state.lastImageSaveFile;
+const setLastImgFileHistorySelector = (state: HistoryState) => state.setLastImageSaveFile;
+
+const lastCsvFileHistorySelector = (state: HistoryState) => state.lastCsvSaveFile;
+const setLastCsvFileHistorySelector = (state: HistoryState) => state.setLastCsvSaveFile;
+
 const DataPlot = ({connectionName}: DataPlotProps) => {
     const [points, setPoints] = useState<Data>({datasets: []});
     const chartRef = useRef(null);
+
+    const lastImgFileName = useHistoryStore(lastImgFileHistorySelector);
+    const setLastImgFileName = useHistoryStore(setLastImgFileHistorySelector);
+
+    const lastCsvFileName = useHistoryStore(lastCsvFileHistorySelector);
+    const setLastCsvFileName = useHistoryStore(setLastCsvFileHistorySelector);
 
     const newDataCallback = useCallback((event: Event<unknown>) => {
         const pl = event.payload as { x: number, y: number, quantity: string, connection: string };
@@ -104,11 +117,16 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
 
     const askForSaveImgFileName = async () => {
         const filePath = await save({
+            defaultPath: lastImgFileName,
             filters: [{
                 name: "Image",
                 extensions: ["png"]
             }]
         });
+
+        if (filePath == null) return;
+
+        setLastImgFileName(filePath);
 
         try {
             await invoke("write_plot_image", {
@@ -122,11 +140,16 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
 
     const askForSaveCsvFileName = async () => {
         const filePath = await save({
+            defaultPath: lastCsvFileName,
             filters: [{
                 name: "CSV",
                 extensions: ["csv"]
             }]
         });
+
+        if (filePath == null) return;
+
+        setLastCsvFileName(filePath);
 
         const data = points.datasets.map(p => ({
             label: p.label,

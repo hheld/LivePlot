@@ -1,4 +1,4 @@
-import {ConnectionHistoryState, useConnectionHistoryStore} from "./connectionHistoryStore";
+import {HistoryState, useHistoryStore} from "./historyStore";
 import {Button, FormControl, FormLabel, HStack, Select, Stack} from "@chakra-ui/react";
 import {invoke} from "@tauri-apps/api/tauri";
 import {State, useStore} from "./store";
@@ -6,13 +6,13 @@ import {ChangeEvent, useState} from "react";
 import {confirm} from '@tauri-apps/api/dialog';
 
 const addConnectionSelector = (state: State) => state.addConnection;
-const connectionsSelector = (state: ConnectionHistoryState) => state.connections;
-const forgetConnectionSelector = (state: ConnectionHistoryState) => state.removeConnectionFromHistory;
+const connectionsSelector = (state: HistoryState) => state.connections;
+const forgetConnectionSelector = (state: HistoryState) => state.removeConnectionFromHistory;
 
 const ConnectionHistory = () => {
     const storeConnection = useStore(addConnectionSelector);
-    const storedConnections = useConnectionHistoryStore(connectionsSelector);
-    const forgetConnection = useConnectionHistoryStore(forgetConnectionSelector);
+    const storedConnections = useHistoryStore(connectionsSelector);
+    const forgetConnection = useHistoryStore(forgetConnectionSelector);
 
     const [connection, setConnection] = useState("");
 
