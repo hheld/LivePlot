@@ -8,6 +8,13 @@ set(PUBLIC_HEADERS
     include/liveplot.h
     )
 
+# Python bindings ######################################################################################################
+
+find_package(pybind11 REQUIRED)
+pybind11_add_module(py${LIB_NAME} ${PUBLIC_HEADERS} ${SOURCES_AND_PRIVATE_HEADERS} src/pyliveplot.cpp)
+
+########################################################################################################################
+
 add_library(${LIB_NAME} SHARED ${PUBLIC_HEADERS} ${SOURCES_AND_PRIVATE_HEADERS})
 
 include(GenerateExportHeader)
@@ -15,7 +22,7 @@ generate_export_header(${LIB_NAME} PREFIX_NAME API_)
 
 find_package(cppzmq REQUIRED)
 
-set_target_properties(${LIB_NAME} PROPERTIES
+set_target_properties(${LIB_NAME} py${LIB_NAME} PROPERTIES
                       CXX_STANDARD 17
                       POSITION_INDEPENDENT_CODE ON
                       CXX_VISIBILITY_PRESET hidden
@@ -23,6 +30,12 @@ set_target_properties(${LIB_NAME} PROPERTIES
                       )
 
 target_link_libraries(${LIB_NAME}
+                      PRIVATE
+                      logging_obj
+                      cppzmq
+                      )
+
+target_link_libraries(py${LIB_NAME}
                       PRIVATE
                       logging_obj
                       cppzmq
@@ -38,8 +51,18 @@ target_include_directories(${LIB_NAME}
                            src
                            )
 
+target_include_directories(py${LIB_NAME}
+                           PUBLIC
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                           $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+
+                           PRIVATE
+                           src
+                           )
+
 # install information ##################################################################################################
-install(TARGETS ${LIB_NAME}
+install(TARGETS ${LIB_NAME} py${LIB_NAME}
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
