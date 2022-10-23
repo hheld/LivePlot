@@ -10,7 +10,7 @@ extern "C" {
 typedef void *LivePlotSub;
 
 /**
- * Callback o inform the subscriber about new values (x, y) for \a quantity. \a state is passed on as well.
+ * Callback to inform the subscriber about new values (x, y) for \a quantity. \a state is passed on as well.
  */
 typedef void (*Callback)(double x, double y, const char *quantity, void *state);
 
