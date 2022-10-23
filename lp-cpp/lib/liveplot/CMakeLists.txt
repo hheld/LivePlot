@@ -38,8 +38,35 @@ target_include_directories(${LIB_NAME}
                            src
                            )
 
+# No-op library ########################################################################################################
+
+add_library(${LIB_NAME}-noop SHARED ${PUBLIC_HEADERS} src/liveplot-noop.cpp)
+
+set_target_properties(${LIB_NAME}-noop PROPERTIES
+                      CXX_STANDARD 17
+                      POSITION_INDEPENDENT_CODE ON
+                      CXX_VISIBILITY_PRESET hidden
+                      VISIBILITY_INLINES_HIDDEN 1
+                      )
+
+target_link_libraries(${LIB_NAME}-noop
+                      PRIVATE
+                      logging_obj
+                      )
+
+target_include_directories(${LIB_NAME}-noop
+                           PUBLIC
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                           $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+
+                           PRIVATE
+                           src
+                           )
+
 # install information ##################################################################################################
-install(TARGETS ${LIB_NAME}
+
+install(TARGETS ${LIB_NAME} ${LIB_NAME}-noop
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -75,6 +102,3 @@ target_link_libraries(py${LIB_NAME}
                       logging_obj
                       cppzmq
                       )
-
-########################################################################################################################
-

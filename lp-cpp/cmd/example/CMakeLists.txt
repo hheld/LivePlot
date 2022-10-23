@@ -5,8 +5,9 @@ set(SOURCES_AND_PRIVATE_HEADERS
     )
 
 add_executable(${EXE_TARGET} ${SOURCES_AND_PRIVATE_HEADERS})
+add_executable(${EXE_TARGET}-noop ${SOURCES_AND_PRIVATE_HEADERS})
 
-set_target_properties(${EXE_TARGET} PROPERTIES
+set_target_properties(${EXE_TARGET} ${EXE_TARGET}-noop PROPERTIES
                       CXX_STANDARD 17
                       )
 
@@ -16,14 +17,8 @@ target_link_libraries(${EXE_TARGET}
                       liveplot
                       )
 
-target_include_directories(${EXE_TARGET}
-                           PRIVATE
-                           src
-                           )
-
-# install information ##################################################################################################
-install(TARGETS ${EXE_TARGET}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        )
+target_link_libraries(${EXE_TARGET}-noop
+                      PRIVATE
+                      logging_obj
+                      liveplot-noop
+                      )
