@@ -16,17 +16,17 @@ panic = "abort"
 lto = true
 
 [build-dependencies]
-tauri-build = { version = "1.1.1", features = [] }
+tauri-build = { version = "1.2.0", features = [] }
 cmake = "0.1.48"
 conan = "0.2.0"
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.1.1", features = ["dialog-confirm", "dialog-message", "dialog-save"] }
-regex = "1.6.0"
-base64 = "0.13.0"
-polars = { version = "0.24.3", features= ["diagonal_concat"] }
+tauri = { version = "1.2.0", features = ["dialog-confirm", "dialog-message", "dialog-save"] }
+regex = "1.7.0"
+base64 = "0.13.1"
+polars = { version = "0.25.1", features= ["diagonal_concat"] }
 
 [features]
 # by default Tauri runs in production mode
