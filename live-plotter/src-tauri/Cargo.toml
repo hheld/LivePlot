@@ -17,7 +17,7 @@ lto = true
 
 [build-dependencies]
 tauri-build = { version = "1.2.0", features = [] }
-cmake = "0.1.48"
+cmake = "0.1.49"
 conan = "0.2.0"
 
 [dependencies]
