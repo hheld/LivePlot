@@ -1,18 +1,14 @@
-import {HistoryState, useHistoryStore} from "./historyStore";
 import {Button, FormControl, FormLabel, HStack, Select, Stack} from "@chakra-ui/react";
 import {invoke} from "@tauri-apps/api/tauri";
-import {State, useStore} from "./store";
 import {ChangeEvent, useState} from "react";
 import {confirm} from '@tauri-apps/api/dialog';
-
-const addConnectionSelector = (state: State) => state.addConnection;
-const connectionsSelector = (state: HistoryState) => state.connections;
-const forgetConnectionSelector = (state: HistoryState) => state.removeConnectionFromHistory;
+import {useHistoryActions, useHistoryConnections} from "./historyStore";
+import {useConnectionActions} from "./store";
 
 const ConnectionHistory = () => {
-    const storeConnection = useStore(addConnectionSelector);
-    const storedConnections = useHistoryStore(connectionsSelector);
-    const forgetConnection = useHistoryStore(forgetConnectionSelector);
+    const {addConnection} = useConnectionActions();
+    const storedConnections = useHistoryConnections();
+    const {removeConnectionFromHistory} = useHistoryActions();
 
     const [connection, setConnection] = useState("");
 
@@ -29,7 +25,7 @@ const ConnectionHistory = () => {
     const connect = async () => {
         try {
             await invoke("connect", {connection});
-            storeConnection(connection);
+            addConnection(connection);
             setConnection("");
         } catch (err) {
             console.error(`could not connect to ${connection}`);
@@ -40,7 +36,7 @@ const ConnectionHistory = () => {
         const confirmed = await confirm(`Are you sure to forget the connection ${connection}?`, "Forget connection");
         if (!confirmed) return;
 
-        forgetConnection(connection);
+        removeConnectionFromHistory(connection);
         setConnection("");
     };
 

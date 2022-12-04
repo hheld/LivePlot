@@ -2,7 +2,7 @@ import {listen, Event} from "@tauri-apps/api/event";
 import {useCallback, useEffect} from "react";
 import {Box, Switch, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
 import {invoke} from "@tauri-apps/api/tauri";
-import {State, useStore} from "./store";
+import {useConnectionActions, useConnections, useConnectionsWithName} from "./store";
 
 const subscribe = async (connectionName: string, topic: string) => {
     await invoke("subscribe", {connection: connectionName, quantity: topic});
@@ -21,16 +21,13 @@ interface KnownSubscription {
     subscribed: boolean;
 }
 
-const addQuantityToConnectionSelector = (state: State) => state.addQuantityToConnection;
-const addSubscriptionToConnectionSelector = (state: State) => state.addSubscriptionToConnection;
-const removeSubscriptionToConnectionSelector = (state: State) => state.removeSubscriptionFromConnection;
-
 const SubscriptionsTable = ({connectionName}: SubscriptionsTableProps) => {
-    const connectionSelector = useCallback((state: State) => state.connections.find(c => c.name === connectionName), [connectionName]);
-    const connectionData = useStore(connectionSelector);
-    const addQuantityToConnection = useStore(addQuantityToConnectionSelector);
-    const addSubscriptionToConnection = useStore(addSubscriptionToConnectionSelector);
-    const removeSubscriptionFromConnection = useStore(removeSubscriptionToConnectionSelector);
+    const connectionData = useConnectionsWithName(connectionName);
+    const {
+        addQuantityToConnection,
+        addSubscriptionToConnection,
+        removeSubscriptionFromConnection
+    } = useConnectionActions();
 
     const newQuantitiesCallback = useCallback((event: Event<unknown>) => {
         const pl = event.payload as { quantity: string, connection: string };

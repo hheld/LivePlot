@@ -6,7 +6,7 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import Zoom from "chartjs-plugin-zoom";
 import {save, message} from '@tauri-apps/api/dialog';
 import {invoke} from "@tauri-apps/api/tauri";
-import {HistoryState, useHistoryStore} from "./historyStore";
+import {useHistoryActions, useLastCsvSaveFile, useLastImageSaveFile} from "./historyStore";
 
 ChartJS.register(LineElement, PointElement, LinearScale, Title, Legend, Tooltip, Zoom);
 
@@ -36,21 +36,14 @@ type DataPlotProps = {
     connectionName: string
 };
 
-const lastImgFileHistorySelector = (state: HistoryState) => state.lastImageSaveFile;
-const setLastImgFileHistorySelector = (state: HistoryState) => state.setLastImageSaveFile;
-
-const lastCsvFileHistorySelector = (state: HistoryState) => state.lastCsvSaveFile;
-const setLastCsvFileHistorySelector = (state: HistoryState) => state.setLastCsvSaveFile;
-
 const DataPlot = ({connectionName}: DataPlotProps) => {
     const [points, setPoints] = useState<Data>({datasets: []});
     const chartRef = useRef(null);
 
-    const lastImgFileName = useHistoryStore(lastImgFileHistorySelector);
-    const setLastImgFileName = useHistoryStore(setLastImgFileHistorySelector);
+    const {setLastImageSaveFile, setLastCsvSaveFile} = useHistoryActions();
 
-    const lastCsvFileName = useHistoryStore(lastCsvFileHistorySelector);
-    const setLastCsvFileName = useHistoryStore(setLastCsvFileHistorySelector);
+    const lastImgFileName = useLastImageSaveFile();
+    const lastCsvFileName = useLastCsvSaveFile();
 
     const newDataCallback = useCallback((event: Event<unknown>) => {
         const pl = event.payload as { x: number, y: number, quantity: string, connection: string };
@@ -126,7 +119,7 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
 
         if (filePath == null) return;
 
-        setLastImgFileName(filePath);
+        setLastImageSaveFile(filePath);
 
         try {
             await invoke("write_plot_image", {
@@ -149,7 +142,7 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
 
         if (filePath == null) return;
 
-        setLastCsvFileName(filePath);
+        setLastCsvSaveFile(filePath);
 
         const data = points.datasets.map(p => ({
             label: p.label,

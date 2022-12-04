@@ -14,22 +14,16 @@ import {
 import React, {ChangeEvent, useState} from "react";
 import {invoke} from "@tauri-apps/api/tauri";
 import {confirm} from '@tauri-apps/api/dialog';
-import {State, useStore} from "./store";
+import {useConnectionActions, useConnections} from "./store";
 import ConnectionControl from "./ConnectionControl";
 import {CloseIcon} from "@chakra-ui/icons";
-import {HistoryState, useHistoryStore} from "./historyStore";
 import ConnectionHistory from "./ConnectionHistory";
-
-const addConnectionSelector = (state: State) => state.addConnection;
-const removeConnectionSelector = (state: State) => state.removeConnection;
-const connectionsSelector = (state: State) => state.connections;
-const addConnectionToHistorySelector = (state: HistoryState) => state.addConnectionToHistory;
+import {useHistoryActions} from "./historyStore";
 
 const App = () => {
-    const storeConnection = useStore(addConnectionSelector);
-    const removeConnection = useStore(removeConnectionSelector);
-    const storedConnections = useStore(connectionsSelector);
-    const addConnectionToHistory = useHistoryStore(addConnectionToHistorySelector);
+    const {addConnection, removeConnection} = useConnectionActions();
+    const storedConnections = useConnections();
+    const {addConnectionToHistory} = useHistoryActions();
 
     const [connection, setConnection] = useState("");
 
@@ -45,7 +39,7 @@ const App = () => {
     const connect = async () => {
         try {
             await invoke("connect", {connection});
-            storeConnection(connection);
+            addConnection(connection);
             addConnectionToHistory(connection);
             setConnection("");
         } catch (err) {
