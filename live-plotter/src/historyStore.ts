@@ -45,7 +45,12 @@ const useHistoryStore = create<HistoryState>()(
             }
         }),
         {
-            name: "history"
+            name: "history",
+            partialize: (state) => ({
+                connections: state.connections,
+                lastImageSaveFile: state.lastImageSaveFile,
+                lastCsvSaveFile: state.lastCsvSaveFile
+            }),
         }
     )
 );
