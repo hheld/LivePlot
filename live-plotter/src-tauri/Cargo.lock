@@ -389,9 +389,9 @@ dependencies = [
 
 [[package]]
 name = "conan"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50a85715a2601235e375c705a783ef4a0a050bc57ad9001821eba61f2ed6c376"
+checksum = "2f7e70dc8dd8bb39c39b6d510efd907f0463436dcae0229d3891a2043a9d2f57"
 dependencies = [
  "indexmap",
  "lazy_static",

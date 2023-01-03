@@ -1,5 +1,6 @@
 use cmake;
 use conan;
+use conan::build_info::build_settings::BuildSettings;
 use std::env;
 use std::path::Path;
 
@@ -17,9 +18,20 @@ fn main() {
 
     let conan_profile = "default";
 
+    let build_type = if let Ok(profile) = env::var("PROFILE") {
+        match profile.as_str() {
+            "debug" => "Debug",
+            "release" => "Release",
+            _ => "Debug",
+        }
+    } else {
+        "Debug"
+    };
+
     let command = conan::InstallCommandBuilder::new()
         .with_profile(conan_profile)
         .build_policy(conan::BuildPolicy::Missing)
+        .build_settings(BuildSettings::new().build_type(build_type))
         .recipe_path(Path::new(&format!("{}/conanfile.txt", &out_dir)))
         .output_dir(Path::new(&format!("{}/conan", &out_dir)))
         .build();
