@@ -170,6 +170,14 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
                                  maintainAspectRatio: false,
                                  responsive: true,
                                  animation: false,
+                                 elements: {
+                                     line: {
+                                         borderWidth: 1,
+                                     },
+                                     point: {
+                                         pointStyle: "cross",
+                                     }
+                                 },
                                  plugins: {
                                      zoom: {
                                          zoom: {
