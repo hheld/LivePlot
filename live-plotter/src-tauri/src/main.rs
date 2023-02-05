@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+use base64::Engine;
 use polars::functions::diag_concat_df;
 use polars::prelude::*;
 use regex::Regex;
@@ -286,7 +287,7 @@ fn disconnect(connection: &str, app_state: State<'_, AppState>) {
 
 #[tauri::command]
 fn write_plot_image(file_name: &str, base64_encoded_image: &str) -> Result<(), String> {
-    if let Ok(b) = base64::decode(base64_encoded_image) {
+    if let Ok(b) = base64::engine::general_purpose::STANDARD.decode(base64_encoded_image) {
         if let Ok(mut file) = File::create(file_name) {
             match file.write_all(&b) {
                 Err(err) => return Err(err.to_string()),
@@ -319,13 +320,13 @@ fn write_data_csv(file_name: &str, data: Vec<CsvData>) -> Result<(), String> {
     let all_dfs = data
         .iter()
         .map(|d| {
-            polars::df![
+            df![
                 "x" => &d.x,
                 &d.label => &d.y
             ]
             .unwrap()
         })
-        .collect::<Vec<polars::frame::DataFrame>>();
+        .collect::<Vec<DataFrame>>();
 
     let mut merged_frames = match diag_concat_df(&all_dfs).unwrap().sort(["x"], false) {
         Ok(merged_frames) => merged_frames,

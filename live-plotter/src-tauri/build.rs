@@ -44,7 +44,10 @@ fn main() {
     let lp_sub_lib = cmake::Config::new("../../lp-cpp/")
         .define(
             "CMAKE_TOOLCHAIN_FILE",
-            &format!("{}/build/generators/conan_toolchain.cmake", &out_dir),
+            &format!(
+                "{}/build/{}/generators/conan_toolchain.cmake",
+                &out_dir, &build_type
+            ),
         )
         .build();
 
