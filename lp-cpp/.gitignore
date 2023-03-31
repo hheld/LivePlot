@@ -1,4 +1,5 @@
 build/
+cmake-build-*/
 ipch/
 CMakeLists.txt.user
 .build/

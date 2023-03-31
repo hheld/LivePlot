@@ -1,53 +1,17 @@
 use cmake;
-use conan;
-use conan::build_info::build_settings::BuildSettings;
 use std::env;
-use std::path::Path;
 
 fn main() {
     let out_dir = env::var("OUT_DIR").unwrap();
+    let src_dir_path = std::path::PathBuf::from(".");
+    let abs_src_dir = std::fs::canonicalize(&src_dir_path).unwrap();
+    let src_dir = abs_src_dir.to_str().unwrap();
     let target_os = env::var("CARGO_CFG_TARGET_OS");
-
-    println!("cargo:rerun-if-changed=../../lp-cpp/conanfile.txt");
-
-    std::fs::copy(
-        "../../lp-cpp/conanfile.txt",
-        format!("{}/conanfile.txt", &out_dir),
-    )
-    .expect("could not copy conanfile.txt");
-
-    let conan_profile = "default";
-
-    let build_type = if let Ok(profile) = env::var("PROFILE") {
-        match profile.as_str() {
-            "debug" => "Debug",
-            "release" => "Release",
-            _ => "Debug",
-        }
-    } else {
-        "Debug"
-    };
-
-    let command = conan::InstallCommandBuilder::new()
-        .with_profile(conan_profile)
-        .build_policy(conan::BuildPolicy::Missing)
-        .build_settings(BuildSettings::new().build_type(build_type))
-        .recipe_path(Path::new(&format!("{}/conanfile.txt", &out_dir)))
-        .output_dir(Path::new(&format!("{}/conan", &out_dir)))
-        .build();
-
-    if let Some(build_info) = command.generate() {
-        println!("using conan build info");
-        build_info.cargo_emit();
-    }
 
     let lp_sub_lib = cmake::Config::new("../../lp-cpp/")
         .define(
             "CMAKE_TOOLCHAIN_FILE",
-            &format!(
-                "{}/build/{}/generators/conan_toolchain.cmake",
-                &out_dir, &build_type
-            ),
+            format!("{}/target/vcpkg/scripts/buildsystems/vcpkg.cmake", src_dir),
         )
         .build();
 
