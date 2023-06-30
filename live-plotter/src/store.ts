@@ -1,6 +1,5 @@
-import create from "zustand";
-import produce from "immer";
-import {useCallback} from "react";
+import {create} from "zustand";
+import {produce} from "immer";
 
 export interface ConnectionData {
     name: string
