@@ -9,7 +9,7 @@
     },
     {
       "name": "cppzmq",
-      "version>=": "4.9.0"
+      "version>=": "4.10.0"
     },
     {
       "name": "nlohmann-json",
@@ -17,11 +17,11 @@
     },
     {
       "name": "pybind11",
-      "version>=": "2.10.3"
+      "version>=": "2.11.1"
     },
     {
       "name": "spdlog",
-      "version>=": "1.11.0"
+      "version>=": "1.12.0"
     }
   ]
 }

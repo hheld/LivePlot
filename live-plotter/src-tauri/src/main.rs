@@ -4,7 +4,7 @@
 )]
 
 use base64::Engine;
-use polars::functions::diag_concat_df;
+use polars::functions::concat_df_diagonal;
 use polars::prelude::*;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
@@ -184,7 +184,11 @@ fn unsubscribe(connection: &str, quantity: &str, app_state: State<'_, AppState>)
     let sub_data = &subscriptions[quantity];
 
     unsafe { lpDestroySubscription(sub_data.raw_sub.0) };
-    unsafe { Box::<CallbackData>::from_raw(sub_data.raw_cb_data.0 as *mut _) };
+    unsafe {
+        drop(Box::<CallbackData>::from_raw(
+            sub_data.raw_cb_data.0 as *mut _,
+        ))
+    };
 
     subscriptions.remove(quantity);
 }
@@ -278,7 +282,11 @@ fn disconnect(connection: &str, app_state: State<'_, AppState>) {
         // unsubscribe from everything
         for (_, sub_data) in &connection_to_be_removed.subscriptions {
             unsafe { lpDestroySubscription(sub_data.raw_sub.0) };
-            unsafe { Box::<CallbackData>::from_raw(sub_data.raw_cb_data.0 as *mut _) };
+            unsafe {
+                drop(Box::<CallbackData>::from_raw(
+                    sub_data.raw_cb_data.0 as *mut _,
+                ))
+            };
         }
 
         connection_to_be_removed.subscriptions.clear();
@@ -328,14 +336,17 @@ fn write_data_csv(file_name: &str, data: Vec<CsvData>) -> Result<(), String> {
         })
         .collect::<Vec<DataFrame>>();
 
-    let mut merged_frames = match diag_concat_df(&all_dfs).unwrap().sort(["x"], false) {
+    let mut merged_frames = match concat_df_diagonal(&all_dfs)
+        .unwrap()
+        .sort(["x"], false, true)
+    {
         Ok(merged_frames) => merged_frames,
         Err(err) => return Err(err.to_string()),
     };
 
     if let Err(err) = CsvWriter::new(&mut file)
         .has_header(true)
-        .with_delimiter(b'\t')
+        .with_separator(b'\t')
         .finish(&mut merged_frames)
     {
         return Err(err.to_string());
