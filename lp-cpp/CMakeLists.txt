@@ -15,12 +15,20 @@ enable_testing()
 
 # generate documentation ###############################################################################################
 find_package(Doxygen
-             OPTIONAL_COMPONENTS mscgen dot)
+        OPTIONAL_COMPONENTS mscgen dot)
 
 if (DOXYGEN_FOUND)
     doxygen_add_docs(
-        doxygen
-        ${PROJECT_SOURCE_DIR}
-        COMMENT "Generate API documentation"
+            doxygen
+            ${PROJECT_SOURCE_DIR}
+            COMMENT "Generate API documentation"
     )
 endif (DOXYGEN_FOUND)
+
+# install #############################################################################################################
+install(EXPORT liveplotTargets
+        FILE liveplotTargets.cmake
+        NAMESPACE liveplot::
+        DESTINATION lib/cmake/liveplot
+)
+

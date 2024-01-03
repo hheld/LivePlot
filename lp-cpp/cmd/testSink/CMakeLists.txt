@@ -23,10 +23,3 @@ target_include_directories(${EXE_TARGET}
                            PRIVATE
                            src
                            )
-
-# install information ##################################################################################################
-install(TARGETS ${EXE_TARGET}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        )
