@@ -345,7 +345,7 @@ fn write_data_csv(file_name: &str, data: Vec<CsvData>) -> Result<(), String> {
     };
 
     if let Err(err) = CsvWriter::new(&mut file)
-        .has_header(true)
+        .include_header(true)
         .with_separator(b'\t')
         .finish(&mut merged_frames)
     {
