@@ -32,3 +32,23 @@ install(EXPORT liveplotTargets
         DESTINATION lib/cmake/liveplot
 )
 
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+        "${CMAKE_CURRENT_BINARY_DIR}/liveplotConfig.cmake"
+        INSTALL_DESTINATION "lib/cmake/liveplot"
+        NO_SET_AND_CHECK_MACRO
+        NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/liveplotConfigVersion.cmake"
+        VERSION ${CMAKE_PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion
+)
+
+install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/liveplotConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/liveplotConfigVersion.cmake
+        DESTINATION lib/cmake/liveplot
+)
