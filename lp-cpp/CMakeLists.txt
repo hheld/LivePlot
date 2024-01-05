@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.15)
 project(liveplot VERSION 0.0.1 LANGUAGES CXX)
 
 option(BUILD_PYTHON_MODULE "build Python module" OFF)
+option(BUILD_TESTS "build unit tests" OFF)
 
 ########################################################################################################################
 
@@ -12,8 +13,10 @@ add_subdirectory(logging)
 add_subdirectory(lib)
 add_subdirectory(cmd)
 
-add_subdirectory(tests)
-enable_testing()
+if (BUILD_TESTS)
+    add_subdirectory(tests)
+    enable_testing()
+endif ()
 
 # generate documentation ###############################################################################################
 find_package(Doxygen
