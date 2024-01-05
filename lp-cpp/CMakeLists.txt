@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.15)
 
 project(liveplot VERSION 0.0.1 LANGUAGES CXX)
 
+option(BUILD_PYTHON_MODULE "build Python module" OFF)
+
 ########################################################################################################################
 
 add_subdirectory(logging)

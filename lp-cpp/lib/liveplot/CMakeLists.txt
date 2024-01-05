@@ -80,26 +80,28 @@ install(TARGETS ${LIB_NAME} ${LIB_NAME}-noop
 
 # Python bindings ######################################################################################################
 
-find_package(Python COMPONENTS Development Interpreter)
-find_package(pybind11 CONFIG REQUIRED)
-pybind11_add_module(py${LIB_NAME} $<TARGET_OBJECTS:${LIB_NAME}> src/pyliveplot.cpp)
+if (BUILD_PYTHON_MODULE)
+    find_package(Python COMPONENTS Development Interpreter)
+    find_package(pybind11 CONFIG REQUIRED)
+    pybind11_add_module(py${LIB_NAME} $<TARGET_OBJECTS:${LIB_NAME}> src/pyliveplot.cpp)
 
-set_target_properties(py${LIB_NAME} PROPERTIES
-        CXX_STANDARD 17
-        POSITION_INDEPENDENT_CODE ON
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN 1
-)
+    set_target_properties(py${LIB_NAME} PROPERTIES
+            CXX_STANDARD 17
+            POSITION_INDEPENDENT_CODE ON
+            CXX_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN 1
+    )
 
-target_include_directories(py${LIB_NAME}
-        PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        src
-)
+    target_include_directories(py${LIB_NAME}
+            PRIVATE
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+            src
+    )
 
-target_link_libraries(py${LIB_NAME}
-        PRIVATE
-        logging_obj
-        cppzmq
-)
+    target_link_libraries(py${LIB_NAME}
+            PRIVATE
+            logging_obj
+            cppzmq
+    )
+endif ()
