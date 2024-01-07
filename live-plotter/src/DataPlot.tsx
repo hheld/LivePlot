@@ -162,7 +162,7 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
 
     return (
         <VStack spacing="10">
-            <Box shadow="md" borderWidth="1px" h="300px" w="100%">
+            <Box shadow="md" borderWidth="1px" h="500px" w="100%">
                 <Container w="100%" centerContent maxW="100%" h="100%">
                     <Scatter data={points}
                              ref={chartRef}
@@ -172,7 +172,7 @@ const DataPlot = ({connectionName}: DataPlotProps) => {
                                  animation: false,
                                  elements: {
                                      line: {
-                                         borderWidth: 1,
+                                         borderWidth: 3,
                                      },
                                      point: {
                                          pointStyle: "cross",
