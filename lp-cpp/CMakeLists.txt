@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 
 ########################################################################################################################
 
-project(liveplot VERSION 0.0.1 LANGUAGES CXX)
+project(liveplot VERSION 0.0.2 LANGUAGES CXX)
 
 option(BUILD_PYTHON_MODULE "build Python module" OFF)
 option(BUILD_TESTS "build unit tests" OFF)

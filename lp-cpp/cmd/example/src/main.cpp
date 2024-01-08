@@ -34,7 +34,7 @@ int main(int argc, const char *argv[])
 
         while (!quit)
         {
-            logger->info("time: {} seconds", t);
+            //            logger->info("time: {} seconds", t);
             std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int64_t>(1000. * tStep)));
             t += tStep;
 

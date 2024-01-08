@@ -4,12 +4,12 @@
 
 int main()
 {
-    auto *sub1 = lpNewSubscription("tcp://localhost:12345", "sin", nullptr,
+    auto *sub1 = lpNewSubscription("ipc:///tmp/lp", "sin", nullptr,
                                    [](double x, double y, const char *quantity, void *) {
                                        fmt::print("got values for {}: ({}, {})\n", quantity, x, y);
                                    });
 
-    auto *sub2 = lpNewSubscription("tcp://localhost:12345", "cos", nullptr,
+    auto *sub2 = lpNewSubscription("ipc:///tmp/lp", "cos", nullptr,
                                    [](double x, double y, const char *quantity, void *) {
                                        fmt::print("got values for {}: ({}, {})\n", quantity, x, y);
                                    });

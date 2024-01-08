@@ -37,6 +37,7 @@ void LivePlotSubscription::startListening() const
     try
     {
         sock.connect(connection_);
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
     }
     catch (...)
     {
