@@ -29,7 +29,7 @@ serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tauri = { version = "1", features = ["dialog-confirm", "dialog-message", "dialog-save"] }
 regex = "1.10.2"
-base64 = "0.21.5"
+base64 = "0.21.7"
 polars = { version = "0.36", features = ["diagonal_concat"] }
 
 [features]
