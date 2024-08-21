@@ -17,7 +17,7 @@ lto = true
 
 [build-dependencies]
 tauri-build = { version = "1", features = [] }
-cmake = "0.1.50"
+cmake = "0.1.51"
 vcpkg = "0.2.15"
 
 [package.metadata.vcpkg]
