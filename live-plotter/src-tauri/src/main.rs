@@ -336,10 +336,12 @@ fn write_data_csv(file_name: &str, data: Vec<CsvData>) -> Result<(), String> {
         })
         .collect::<Vec<DataFrame>>();
 
-    let mut merged_frames = match concat_df_diagonal(&all_dfs)
-        .unwrap()
-        .sort(["x"], false, true)
-    {
+    let mut merged_frames = match concat_df_diagonal(&all_dfs).unwrap().sort(
+        ["x"],
+        SortMultipleOptions::new()
+            .with_order_descending(false)
+            .with_maintain_order(true),
+    ) {
         Ok(merged_frames) => merged_frames,
         Err(err) => return Err(err.to_string()),
     };
