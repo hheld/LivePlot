@@ -12,8 +12,8 @@ import {
     VStack
 } from "@chakra-ui/react";
 import React, {ChangeEvent, useState} from "react";
-import {invoke} from "@tauri-apps/api/tauri";
-import {confirm} from '@tauri-apps/api/dialog';
+import {invoke} from "@tauri-apps/api/core";
+import {confirm} from '@tauri-apps/plugin-dialog';
 import {useConnectionActions, useConnections} from "./store";
 import ConnectionControl from "./ConnectionControl";
 import {CloseIcon} from "@chakra-ui/icons";

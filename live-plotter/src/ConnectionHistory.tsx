@@ -1,7 +1,7 @@
 import {Button, FormControl, FormLabel, HStack, Select, Stack} from "@chakra-ui/react";
-import {invoke} from "@tauri-apps/api/tauri";
+import {invoke} from "@tauri-apps/api/core";
 import {ChangeEvent, useState} from "react";
-import {confirm} from '@tauri-apps/api/dialog';
+import {confirm} from '@tauri-apps/plugin-dialog';
 import {useHistoryActions, useHistoryConnections} from "./historyStore";
 import {useConnectionActions} from "./store";
 

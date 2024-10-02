@@ -13,7 +13,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::os::raw::c_char;
 use std::sync::Mutex;
-use tauri::{AppHandle, Manager, State, Wry};
+use tauri::{AppHandle, Emitter, Manager, State, Wry};
 
 type Callback = extern "C" fn(x: f64, y: f64, quantity: *const c_char, state: *mut c_void);
 
@@ -52,7 +52,7 @@ extern "C" fn cb(x: f64, y: f64, quantity: *const c_char, state: *mut c_void) {
 
     state
         .app_handle
-        .emit_all(
+        .emit(
             "data",
             EventPayload {
                 x,
@@ -81,7 +81,7 @@ extern "C" fn cb_all(_x: f64, _y: f64, quantity: *const c_char, state: *mut c_vo
     if known_quantities.insert(quantity_rs_str.clone()) {
         state
             .app_handle
-            .emit_all(
+            .emit(
                 "newQuantity",
                 QuantityPayload {
                     quantity: quantity_rs_str,
@@ -359,6 +359,7 @@ fn write_data_csv(file_name: &str, data: Vec<CsvData>) -> Result<(), String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppState {
             connections: Mutex::new(HashMap::new()),
         })

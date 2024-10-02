@@ -16,7 +16,7 @@ panic = "abort"
 lto = true
 
 [build-dependencies]
-tauri-build = { version = "1", features = [] }
+tauri-build = { version = "2", features = [] }
 cmake = "0.1.51"
 vcpkg = "0.2.15"
 
@@ -27,10 +27,11 @@ branch = "master"
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1", features = ["dialog-confirm", "dialog-message", "dialog-save"] }
+tauri = { version = "2", features = [] }
 regex = "1.10"
 base64 = "0.22"
 polars = { version = "0.43.1", features = ["diagonal_concat"] }
+tauri-plugin-dialog = "2"
 
 [features]
 # by default Tauri runs in production mode

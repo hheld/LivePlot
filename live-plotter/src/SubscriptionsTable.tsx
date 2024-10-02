@@ -1,7 +1,7 @@
 import {listen, Event} from "@tauri-apps/api/event";
 import {useCallback, useEffect} from "react";
 import {Box, Switch, Table, TableCaption, TableContainer, Tbody, Td, Th, Thead, Tr} from "@chakra-ui/react";
-import {invoke} from "@tauri-apps/api/tauri";
+import {invoke} from "@tauri-apps/api/core";
 import {useConnectionActions, useConnections, useConnectionsWithName} from "./store";
 
 const subscribe = async (connectionName: string, topic: string) => {
